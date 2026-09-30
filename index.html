@@ -482,7 +482,9 @@ async function loadMyData() {
 }
 
 function renderAppData() {
-  const bal = currentBalance();
+  // 申請中(まだ確認・お渡しが済んでいない)交換分は、二重に使えないようあらかじめ差し引いて表示する。
+  // こうすることで「ポイントを使ったのに残高が減らない」という見え方をなくす。
+  const bal = currentBalance() - pendingPoints();
   ['balance-earn', 'balance-catalog', 'balance-history'].forEach(id => {
     document.getElementById(id).innerHTML = bal + '<span>pt</span>';
   });
@@ -515,7 +517,6 @@ function renderCatalog() {
         <span class="pt-tag">${c.points}pt</span>
       </button>
       <div class="catalog-item-panel" id="panel-${c.id}">
-        <p class="hint">現在の残高(申請中を除く):${bal}pt</p>
         ${bal >= Number(c.points)
           ? `<button class="btn mint" data-request="${c.id}" style="margin-top:12px;">交換を申請する</button>`
           : `<p class="hint error" style="margin-top:0;">ポイントが足りていません。</p>`}
