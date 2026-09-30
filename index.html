@@ -234,6 +234,7 @@
       <div id="register-nameform-box" class="banner" style="display:none;margin-top:14px;text-align:center;">
         <p class="reset-title" style="margin-bottom:8px;">会員番号 <span id="register-number-display"></span> を発行しました</p>
         <p class="hint" style="margin-top:0;">続けて、氏名の登録をお願いします(会員番号は自動的に入力されています)。</p>
+        <p class="hint" id="register-nameform-autotext" style="display:none;margin-top:0;">別のタブで氏名登録フォームを開きました。開いていない場合は、下のボタンを押してください。</p>
         <a class="btn ghost" id="register-nameform-link" href="#" target="_blank" rel="noopener">氏名を登録する</a>
       </div>
     </div>
@@ -670,7 +671,6 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     if (res.ok) {
       saveAuth({ email, password, number: res.number });
       statusEl.innerHTML = '';
-      await loadPublicData();
       showApp();
     } else if (res.error === 'too_many_attempts') {
       statusEl.innerHTML = '<p class="hint error">失敗が続いたため、しばらく時間をおいてからもう一度お試しください。</p>';
@@ -893,7 +893,6 @@ document.getElementById('register-btn').addEventListener('click', async () => {
     if (res.ok) {
       saveAuth({ email, password: p1, number: res.number });
       statusEl.innerHTML = '';
-      await loadPublicData();
       const url = buildNameFormUrl(res.number);
       if (url) {
         document.getElementById('register-number-display').textContent = 'No.' + res.number;
@@ -902,6 +901,11 @@ document.getElementById('register-btn').addEventListener('click', async () => {
         document.getElementById('reg-email').value = '';
         document.getElementById('reg-password').value = '';
         document.getElementById('reg-password2').value = '';
+        // 手動のクリックを待たず、自動で別タブに氏名登録フォームを開く(ポップアップがブロックされた場合はボタンを手動で押してもらう)
+        const opened = window.open(url, '_blank', 'noopener');
+        if (opened) {
+          document.getElementById('register-nameform-autotext').style.display = 'block';
+        }
       } else {
         showApp();
         document.getElementById('earn-status').innerHTML =
