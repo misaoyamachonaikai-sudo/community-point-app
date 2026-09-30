@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>操山町内会ポイント帳(住民用)</title>
+<title>操山町内会ポイント帳(管理者用)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
-    --mint: #AFDCC9; --mint-deep: #8FC7AE; --mint-line: #7FB99E; --mint-pale: #DCEFE4; --mint-mid: #B7E0CD;
-    --sky: #F8F2E2;
+    --mint: #AFDCC9; --mint-deep: #8FC7AE;
     --ink: #15140F; --ink-soft: #6E6D64; --ink-faint: #A9A79A;
     --paper: #FFFFFF; --paper-deep: #F3F2ED; --line: #E4E1D6;
     --plus: #1E6E4F; --plus-bg: #E4F3EA;
@@ -22,399 +21,325 @@
   body { background: var(--paper-deep); color: var(--ink); font-family: 'Zen Kaku Gothic New', sans-serif;
     padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); overflow-x: hidden; }
 
-  header { position: relative; padding-top: 38px; background: var(--sky); overflow: hidden; text-align: center; }
-  .eyebrow { font-family: 'Zen Old Mincho', serif; font-size: 1.2rem; font-weight: 700; color: var(--ink); letter-spacing: 0.03em; margin: 0 0 2px; padding: 0 22px; }
-  header h1 { font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 2.3rem; color: var(--ink); margin: 0 0 8px; letter-spacing: 0.01em; line-height: 1.15; padding: 0 22px; }
-  header .tagline { margin: 0 0 20px; color: #3F6E56; font-size: 0.8rem; letter-spacing: 0.01em; padding: 0 22px; }
-  .mountain-band { width: 100%; aspect-ratio: 800 / 230; display: block; line-height: 0; }
-  .mountain-band svg { width: 100%; height: 100%; display: block; }
+  header { position: relative; padding: 30px 22px 24px; background: var(--ink); overflow: hidden; }
+  .eyebrow { font-family: 'Zen Old Mincho', serif; font-size: 0.86rem; font-weight: 700; color: var(--mint); letter-spacing: 0.03em; margin: 0 0 6px; }
+  header h1 { font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 1.5rem; color: var(--paper); margin: 0 0 6px; letter-spacing: 0.01em; }
+  header p { margin: 0; color: rgba(255,255,255,0.5); font-size: 0.74rem; }
+  #logout-btn { position: absolute; right: 18px; top: 30px; font-size: 0.7rem; padding: 7px 11px;
+    border: 1px solid rgba(175,220,201,0.4); background: transparent; color: var(--mint); border-radius: 5px;
+    cursor: pointer; display: none; font-family: inherit; }
 
-  .auth-bar { display: flex; align-items: center; justify-content: flex-end; gap: 10px;
-    background: var(--ink); padding: 10px 18px; }
-  .auth-bar span { color: var(--mint); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em; }
-  .auth-bar button { background: transparent; border: 1px solid rgba(175,220,201,0.4); color: var(--mint);
-    font-size: 0.7rem; padding: 6px 11px; border-radius: 5px; cursor: pointer; font-family: inherit; }
-
-  nav { display: flex; justify-content: center; padding: 0 8px; border-bottom: 1px solid var(--line);
+  nav { display: flex; justify-content: center; padding: 0 6px; border-bottom: 1px solid var(--line);
     background: var(--paper); flex-wrap: wrap; }
-  nav button { position: relative; font-family: inherit; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.01em;
-    padding: 15px 15px; border: none; background: transparent; color: var(--ink-faint); cursor: pointer; }
-  nav button::after { content: ""; position: absolute; left: 15px; right: 15px; bottom: -1px; height: 3px;
+  nav button { position: relative; font-family: inherit; font-weight: 700; font-size: 0.78rem;
+    padding: 14px 12px; border: none; background: transparent; color: var(--ink-faint); cursor: pointer; }
+  nav button::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px;
     background: var(--ink); border-radius: 2px 2px 0 0; transform: scaleX(0); transition: transform 0.18s ease; }
   nav button.active { color: var(--ink); }
   nav button.active::after { transform: scaleX(1); }
 
-  main { max-width: 640px; margin: 0 auto; padding: 22px 18px 64px; }
-  .section-lead { font-size: 0.8rem; color: var(--ink-soft); margin: 0 0 14px; font-weight: 500; }
+  main { max-width: 660px; margin: 0 auto; padding: 24px 18px 64px; }
   section { display: none; }
   section.active { display: block; }
 
-  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 26px 22px;
-    margin-bottom: 16px; box-shadow: 0 1px 2px rgba(21,20,15,0.04); }
-  .card h2 { font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 1.2rem; margin: 0 0 18px; color: var(--ink); letter-spacing: 0.01em; }
-
-  .balance-card { background: var(--ink); border-radius: 10px; padding: 22px 22px 20px; margin-bottom: 16px;
-    text-align: center; color: var(--paper); }
-  .balance-card .label { font-size: 0.72rem; color: var(--mint); font-weight: 700; letter-spacing: 0.04em; margin: 0 0 4px; }
-  .balance-card .value { font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 2.6rem; letter-spacing: 0.01em; line-height: 1.1; }
-  .balance-card .value span { font-size: 1.05rem; font-weight: 700; margin-left: 3px; color: var(--mint); }
+  .card { background: var(--paper); border: 1.5px solid var(--ink); border-radius: 10px; padding: 24px 20px;
+    margin-bottom: 16px; }
+  .card h2 { font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 1.12rem; margin: 0 0 16px; color: var(--ink); letter-spacing: 0.01em; }
+  .reset-icon { width: 52px; height: 52px; margin: 4px auto 10px; }
+  .reset-icon svg { width: 100%; height: 100%; display: block; }
+  .reset-rule { font-size: 0.76rem; font-weight: 700; color: var(--ink); background: var(--mint);
+    border-radius: 6px; padding: 8px 10px; margin: 12px 0 0; line-height: 1.6; }
 
   label { display: block; font-size: 0.75rem; color: var(--ink-soft); margin: 13px 0 5px; font-weight: 500; }
   .hint { font-size: 0.74rem; color: var(--ink-soft); margin-top: 7px; line-height: 1.7; }
   .hint.error { color: var(--minus); }
-  input, select { width: 100%; padding: 11px 13px; border: 1.4px solid var(--line); border-radius: 7px;
+  input, select, textarea { width: 100%; padding: 11px 13px; border: 1.4px solid var(--line); border-radius: 7px;
     background: var(--paper); font-family: inherit; font-size: 0.92rem; color: var(--ink); }
-  input:focus, select:focus { outline: none; border-color: var(--ink); }
-  .readonly-box { width: 100%; padding: 11px 13px; border: 1.4px dashed var(--line); border-radius: 7px;
-    background: var(--paper-deep); font-size: 0.92rem; color: var(--ink); font-weight: 700; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--ink); }
 
-  .btn { margin-top: 16px; width: 100%; padding: 14px; border: none; border-radius: 10px;
-    background: var(--ink); color: var(--paper); font-size: 0.9rem; font-weight: 700; letter-spacing: 0.02em;
-    cursor: pointer; font-family: inherit; transition: opacity 0.1s ease; }
-  .btn.mint { background: var(--mint); color: var(--ink); }
+  .btn { margin-top: 16px; width: 100%; padding: 13px; border: 1.5px solid var(--ink); border-radius: 8px;
+    background: var(--ink); color: var(--paper); font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: opacity 0.1s ease; }
+  .btn.mint { background: var(--mint); border-color: var(--ink); color: var(--ink); }
   .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
   .btn:active { opacity: 0.75; }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .link-btn { background: none; border: none; color: var(--ink); font-size: 0.78rem; font-weight: 700;
-    text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 8px 0; font-family: inherit; }
+    text-decoration: underline; text-underline-offset: 3px; cursor: pointer; margin-top: 12px; font-family: inherit; }
 
-  .success-pill { display: flex; align-items: center; gap: 10px; background: var(--plus-bg); color: var(--plus);
-    border-radius: 8px; padding: 13px 15px; font-size: 0.85rem; font-weight: 700; margin-bottom: 15px; line-height: 1.6; }
-  .success-pill svg { flex: none; width: 20px; height: 20px; }
-  .banner { background: var(--paper-deep); border: 1.4px solid var(--line); color: var(--ink); border-radius: 8px;
-    padding: 12px 14px; font-size: 0.82rem; margin-bottom: 15px; line-height: 1.7; }
-  .banner.warn { border-color: var(--minus); background: var(--minus-bg); color: var(--minus); }
-  .reset-icon { width: 52px; height: 52px; margin: 4px auto 10px; }
-  .reset-icon svg { width: 100%; height: 100%; display: block; }
-  .reset-title { text-align: center; font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 1.08rem;
-    margin: 0 0 6px; color: var(--ink); }
-  .reset-rule { font-size: 0.76rem; font-weight: 700; color: var(--ink); background: var(--mint);
-    border-radius: 6px; padding: 8px 10px; margin: 12px 0 0; line-height: 1.6; }
-
-  .divider { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
-  .sub-heading { font-size: 0.78rem; font-weight: 700; color: var(--ink-soft); margin: 0 0 10px; }
-
-  .scroll-list { max-height: 260px; overflow-y: auto; border: 1.4px solid var(--line); border-radius: 8px; padding: 4px 12px; }
-  .list-entry { display: flex; justify-content: space-between; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 0.83rem; }
-  .list-entry:last-child { border-bottom: none; }
+  .member-row, .catalog-row, .tmpl-row, .list-entry, .req-row { display: flex; align-items: center;
+    justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 0.85rem; }
+  .member-row:last-child, .catalog-row:last-child, .tmpl-row:last-child, .list-entry:last-child, .req-row:last-child { border-bottom: none; }
+  .member-points { display: flex; align-items: center; gap: 8px; }
+  .stamp-num { display: inline-flex; align-items: center; justify-content: center; min-width: 42px; height: 32px;
+    padding: 0 8px; border: 1.4px solid var(--ink); color: var(--ink); border-radius: 20px; font-weight: 700;
+    font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .del-btn { background: none; border: none; color: var(--ink-soft); font-size: 0.74rem; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px; margin-left: 4px; font-family: inherit; }
   .list-sub { color: var(--ink-soft); font-size: 0.72rem; margin-top: 2px; }
   .list-pt { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .list-pt.earn { color: var(--plus); }
   .list-pt.redeem { color: var(--minus); }
+  .empty { color: var(--ink-faint); font-size: 0.82rem; text-align: center; padding: 20px 0; }
+  .notice { font-size: 0.74rem; color: var(--minus); text-align: center; margin-top: 6px; line-height: 1.6; }
+  .row2 { display: flex; gap: 10px; }
+  .row2 > div { flex: 1; }
+  .banner { background: var(--paper-deep); border: 1.4px solid var(--line); color: var(--ink); border-radius: 8px;
+    padding: 12px 14px; font-size: 0.8rem; margin-bottom: 14px; line-height: 1.7; }
+  .banner.warn { border-color: var(--minus); background: var(--minus-bg); color: var(--minus); }
   .status-tag { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
   .status-tag.pending { background: var(--pending-bg); color: var(--pending); }
-  .status-tag.done { background: var(--plus-bg); color: var(--plus); }
-  .status-tag.rejected { background: var(--minus-bg); color: var(--minus); }
+  .name-status { font-size: 0.68rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; margin-left: 6px; }
+  .name-status.ok { background: var(--plus-bg); color: var(--plus); }
+  .name-status.pending { background: var(--pending-bg); color: var(--pending); }
 
-  .empty { color: var(--ink-faint); font-size: 0.82rem; text-align: center; padding: 22px 0; }
-
-  .catalog-item { border: 1.4px solid var(--line); border-radius: 8px; margin-bottom: 10px; overflow: hidden; }
-  .catalog-item-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    background: var(--paper); border: none; padding: 14px 15px; font-family: inherit; font-size: 0.88rem;
-    font-weight: 700; color: var(--ink); cursor: pointer; text-align: left; }
-  .catalog-item-btn .pt-tag { font-size: 0.75rem; font-weight: 700; background: var(--paper-deep); border: 1.4px solid var(--ink);
-    border-radius: 20px; padding: 4px 11px; white-space: nowrap; }
-  .catalog-item-panel { display: none; padding: 4px 15px 16px; background: var(--paper-deep); }
-  .catalog-item-panel.open { display: block; }
-  .catalog-item-panel .hint { margin-top: 0; margin-bottom: 10px; }
-
-  #scanner-overlay { display: none; position: fixed; inset: 0; background: #000; z-index: 999; }
-  #scanner-overlay video { width: 100%; height: 100%; object-fit: cover; }
-  #scanner-close { position: absolute; top: calc(env(safe-area-inset-top) + 14px); right: 14px;
-    background: var(--paper); border: none; border-radius: 6px; padding: 10px 16px; font-size: 0.84rem;
-    color: var(--ink); cursor: pointer; font-family: inherit; font-weight: 700; }
-  #scanner-frame { position: absolute; top: 50%; left: 50%; width: 62vw; max-width: 280px; aspect-ratio: 1/1;
-    transform: translate(-50%, -50%); box-shadow: 0 0 0 999px rgba(0,0,0,0.5); }
-  #scanner-frame .corner { position: absolute; width: 26px; height: 26px; border: 3px solid var(--mint); }
-  #scanner-frame .corner.tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-  #scanner-frame .corner.tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
-  #scanner-frame .corner.bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
-  #scanner-frame .corner.br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
-  #scanner-hint { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 26px); left: 0; right: 0;
-    text-align: center; color: #fff; font-size: 0.82rem; }
-
-  #onboarding-overlay { display: none; position: fixed; inset: 0; background: rgba(21,20,15,0.72); z-index: 1000;
-    align-items: center; justify-content: center; padding: 20px; }
-  #onboarding-overlay.open { display: flex; }
-  .onboarding-card { background: var(--paper); border-radius: 16px; max-width: 360px; width: 100%;
-    padding: 28px 24px 22px; text-align: center; box-shadow: 0 18px 40px rgba(0,0,0,0.3); }
-  .onboarding-icon { width: 64px; height: 64px; margin: 0 auto 16px; }
-  .onboarding-icon svg { width: 100%; height: 100%; display: block; }
-  .onboarding-title { font-family: 'Zen Old Mincho', serif; font-weight: 900; font-size: 1.2rem; margin: 0 0 10px; }
-  .onboarding-text { font-size: 0.9rem; line-height: 1.75; color: var(--ink-soft); margin: 0 0 20px; }
-  .onboarding-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
-  .onboarding-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: block; }
-  .onboarding-dots span.active { background: var(--mint-deep); }
-  .onboarding-actions { display: flex; gap: 10px; }
-  .onboarding-actions button { flex: 1; }
-  #onboarding-skip { background: none; border: none; color: var(--ink-soft); font-size: 0.78rem;
-    font-family: inherit; cursor: pointer; margin-top: 14px; text-decoration: underline; }
+  #qr-preview { display: flex; justify-content: center; margin: 16px 0; padding: 16px; background: #fff;
+    border: 1.4px solid var(--line); border-radius: 8px; }
+  .qr-label { text-align: center; font-size: 0.88rem; margin-bottom: 2px; font-weight: 700; }
+  .qr-pts { text-align: center; color: var(--ink); font-weight: 900; margin-bottom: 4px; }
+  .qr-expiry { text-align: center; font-size: 0.7rem; color: var(--ink-soft); margin-bottom: 6px; }
+  .qr-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .qr-actions .btn { margin-top: 0; }
+  .tmpl-actions button { font-size: 0.72rem; padding: 6px 10px; margin-left: 4px; }
+  #lock-screen { max-width: 420px; margin: 56px auto 0; text-align: center; padding: 0 16px; }
+  .fallback-note { text-align: left; font-size: 0.68rem; color: var(--ink-soft); margin-top: 16px; line-height: 1.7;
+    background: var(--paper-deep); border-radius: 8px; padding: 12px 13px; }
+  .req-row { align-items: flex-start; }
+  .req-actions { display: flex; gap: 6px; }
+  .req-actions button { font-size: 0.74rem; padding: 7px 11px; border-radius: 6px; font-family: inherit; cursor: pointer; }
+  .req-actions .approve { background: var(--plus); border: none; color: #fff; font-weight: 700; }
+  .req-actions .reject { background: transparent; border: 1.4px solid var(--line); color: var(--ink-soft); }
 
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: absolute; top: 0; left: 0; width: 100%; text-align: center; padding-top: 40px; }
+  }
 </style>
 </head>
 <body>
 
 <header>
   <p class="eyebrow">操山町内会</p>
-  <h1>ポイント帳</h1>
-  <p class="tagline">活動に参加してポイントを貯めよう</p>
-  <div class="mountain-band" aria-hidden="true">
-    <svg viewBox="0 0 800 230" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="sunGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#E7735A"/>
-          <stop offset="55%" stop-color="#F0A57C"/>
-          <stop offset="100%" stop-color="#F8D9B8"/>
-        </linearGradient>
-      </defs>
-      <circle cx="340" cy="140" r="110" fill="url(#sunGrad)"/>
-      <path d="M0,110 C40,95 60,80 90,85 C120,90 140,55 170,50 C200,45 220,65 250,60 C280,55 300,75 340,95 C380,90 400,60 430,55 C460,50 480,70 510,60 C540,50 555,32 580,30 C610,28 630,45 660,42 C690,39 710,55 740,60 C765,64 785,72 800,80 L800,230 L0,230 Z" fill="#DCEFE4"/>
-      <path d="M0,140 C35,128 65,110 95,118 C125,126 145,95 175,90 C205,85 225,105 255,100 C285,95 305,118 340,125 C378,120 398,92 428,88 C458,84 478,102 508,95 C538,88 552,68 578,65 C608,62 628,80 658,76 C688,72 708,90 738,95 C765,99 785,105 800,110 L800,230 L0,230 Z" fill="#B7E0CD"/>
-      <path d="M0,170 C38,160 68,145 98,150 C128,155 148,125 178,120 C208,115 228,132 258,128 C288,124 308,145 350,150 C385,146 405,120 432,115 C458,110 478,128 505,120 C535,112 550,95 575,98 C605,101 625,115 655,112 C685,109 705,128 735,132 C762,136 782,142 800,140 L800,230 L0,230 Z" fill="#8FC7AE"/>
-      <path d="M0,200 C40,192 70,178 100,182 C130,186 155,158 185,155 C215,152 232,168 262,165 C292,162 315,178 360,180 C395,176 415,152 442,148 C468,144 488,160 515,155 C542,150 555,135 575,138 C605,142 625,155 655,152 C685,149 708,165 738,168 C762,171 782,175 800,172 L800,230 L0,230 Z" fill="#15140F"/>
-    </svg>
-  </div>
+  <h1>ポイント帳(管理者用)</h1>
+  <p>係の人専用の管理画面です</p>
+  <button id="logout-btn">ログアウト</button>
 </header>
 
-<div id="gate-wrap">
-  <main>
-    <p class="section-lead">はじめての方も、登録済みの方もこちらから</p>
-    <div class="card">
-      <h2>登録済みの方</h2>
-      <div id="login-status"></div>
-      <label for="login-email">メールアドレス</label>
-      <input id="login-email" type="email" placeholder="登録時に入力したメールアドレス">
-      <label for="login-password">パスワード</label>
-      <input id="login-password" type="password" placeholder="登録時に決めたパスワード">
-      <button class="btn" id="login-btn">ログインする</button>
-      <button type="button" class="link-btn" id="login-forgot-link">パスワードを忘れた場合はこちら</button>
+<div id="lock-screen">
+  <div class="card" id="checking-card">
+    <p class="hint" style="margin-top:0;">確認しています…</p>
+  </div>
 
-      <div id="reset-box" class="banner" style="display:none;margin-top:14px;">
-        <div class="reset-icon" aria-hidden="true">
-          <svg viewBox="0 0 64 64">
-            <path d="M14 20a20 20 0 1 1 -3 22" fill="none" stroke="#15140F" stroke-width="4.2" stroke-linecap="round"/>
-            <path d="M7 13 L14 20 L21 12" fill="none" stroke="#15140F" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <rect x="21" y="30" width="22" height="18" rx="3.5" fill="#15140F"/>
-            <path d="M25.5 30v-6.5a6.5 6.5 0 0 1 13 0v6.5" fill="none" stroke="#15140F" stroke-width="4.2"/>
-          </svg>
-        </div>
-        <p class="reset-title">パスワードを再設定します</p>
-        <p class="hint" id="reset-step1-text" style="margin-top:0;text-align:center;">メールアドレスを入力して、確認コードを送ってください。</p>
-        <label for="reset-email">メールアドレス</label>
-        <input id="reset-email" type="email" placeholder="登録時に入力したメールアドレス">
-        <button class="btn ghost" id="reset-send-btn">確認コードを送信する</button>
-        <div id="reset-step2" style="display:none;">
-          <label for="reset-code">確認コード(メールに記載)</label>
-          <input id="reset-code" placeholder="6桁のコード">
-          <p class="reset-rule">英字と数字を両方含む6文字以上のパスワードにしてください。</p>
-          <label for="reset-newpw">新しいパスワード</label>
-          <input id="reset-newpw" type="password" placeholder="英字+数字を含む6文字以上">
-          <label for="reset-newpw2">新しいパスワード(確認)</label>
-          <input id="reset-newpw2" type="password" placeholder="もう一度入力">
-          <button class="btn ghost" id="reset-confirm-btn">パスワードを再設定する</button>
-        </div>
-        <p class="hint" id="reset-hint"></p>
-        <button type="button" class="link-btn" id="reset-cancel-btn">やめる</button>
-      </div>
+  <!-- 初回:パスワードを新規に決める -->
+  <div class="card" id="setup-card" style="display:none;">
+    <div class="reset-icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64">
+        <rect x="21" y="30" width="22" height="18" rx="3.5" fill="#15140F"/>
+        <path d="M25.5 30v-6.5a6.5 6.5 0 0 1 13 0v6.5" fill="none" stroke="#15140F" stroke-width="4.2"/>
+      </svg>
     </div>
+    <h2 style="text-align:center;">初期設定:パスワードを決める</h2>
+    <p class="hint" style="margin-top:0;">まだパスワードが設定されていません。係の人だけが知っているパスワードを決めてください。</p>
+    <label for="setup-email">メールアドレス</label>
+    <input id="setup-email" type="email" placeholder="パスワードを忘れた時の再設定に使います">
+    <p class="reset-rule">英字と数字を両方含む6文字以上のパスワードにしてください。</p>
+    <label for="setup-password">パスワード</label>
+    <input id="setup-password" type="password" placeholder="英字+数字を含む6文字以上">
+    <label for="setup-password2">もう一度入力</label>
+    <input id="setup-password2" type="password" placeholder="確認のため再入力">
+    <button class="btn" id="setup-btn">このパスワードで設定する</button>
+    <p class="hint" id="setup-hint"></p>
+  </div>
 
-    <div class="card">
-      <h2>はじめての方 - 会員登録</h2>
-      <div id="register-status"></div>
-      <label for="reg-email">メールアドレス</label>
-      <input id="reg-email" type="email" placeholder="パスワードを忘れた時の再設定に使います">
-      <label for="reg-password">パスワード</label>
-      <input id="reg-password" type="password" placeholder="英字+数字を含む6文字以上">
-      <label for="reg-password2">パスワード(確認)</label>
-      <input id="reg-password2" type="password" placeholder="もう一度入力">
-      <p class="hint">お名前はこの画面では入力しません。登録すると会員番号が発行されるので、そのあとの案内にしたがって氏名の登録をお願いします。パスワードは活動を記録するときに「本人確認」として毎回使います。</p>
-      <button class="btn mint" id="register-btn">登録する</button>
-      <div id="register-nameform-box" class="banner" style="display:none;margin-top:14px;text-align:center;">
-        <p class="reset-title" style="margin-bottom:8px;">会員番号 <span id="register-number-display"></span> を発行しました</p>
-        <p class="hint" style="margin-top:0;">続けて、氏名の登録をお願いします(会員番号は自動的に入力されています)。</p>
-        <p class="hint" id="register-nameform-autotext" style="display:none;margin-top:0;">別のタブで氏名登録フォームを開きました。開いていない場合は、下のボタンを押してください。</p>
-        <a class="btn ghost" id="register-nameform-link" href="#" target="_blank" rel="noopener">氏名を登録する</a>
-      </div>
+  <!-- 通常のログイン画面 -->
+  <div class="card" id="login-card" style="display:none;">
+    <h2>係の人ログイン</h2>
+    <label for="passcode-input">パスワード</label>
+    <input id="passcode-input" type="password" placeholder="パスワードを入力">
+    <button class="btn" id="unlock-btn">開く</button>
+    <p class="hint" id="lock-hint"></p>
+    <button class="link-btn" id="forgot-link">パスワードを忘れた場合はこちら</button>
+  </div>
+
+  <!-- パスワード再設定(メールの確認コード) -->
+  <div class="card" id="reset-card" style="display:none;">
+    <div class="reset-icon" aria-hidden="true">
+      <svg viewBox="0 0 64 64">
+        <path d="M14 20a20 20 0 1 1 -3 22" fill="none" stroke="#15140F" stroke-width="4.2" stroke-linecap="round"/>
+        <path d="M7 13 L14 20 L21 12" fill="none" stroke="#15140F" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="21" y="30" width="22" height="18" rx="3.5" fill="#15140F"/>
+        <path d="M25.5 30v-6.5a6.5 6.5 0 0 1 13 0v6.5" fill="none" stroke="#15140F" stroke-width="4.2"/>
+      </svg>
     </div>
-  </main>
+    <h2 style="text-align:center;">パスワードの再設定</h2>
+    <div id="reset-step1">
+      <p class="hint" style="margin-top:0;">登録済みのメールアドレスに確認コードを送信します。</p>
+      <button class="btn ghost" id="reset-send-btn">確認コードを送信する</button>
+    </div>
+    <div id="reset-step2" style="display:none;">
+      <label for="reset-code">確認コード(メールに記載)</label>
+      <input id="reset-code" placeholder="6桁のコード">
+      <p class="reset-rule">英字と数字を両方含む6文字以上のパスワードにしてください。</p>
+      <label for="reset-newpw">新しいパスワード</label>
+      <input id="reset-newpw" type="password" placeholder="英字+数字を含む6文字以上">
+      <label for="reset-newpw2">新しいパスワード(確認)</label>
+      <input id="reset-newpw2" type="password" placeholder="もう一度入力">
+      <button class="btn ghost" id="reset-confirm-btn">パスワードを再設定する</button>
+    </div>
+    <p class="hint" id="reset-hint"></p>
+    <div class="fallback-note">
+      メールが届かない場合:Googleスプレッドシートを開き、「Config」シートの adminPassword の行を削除してください。次回このページを開いたときに、新しいパスワードを設定できます。
+    </div>
+    <button class="link-btn" id="back-to-login-link">ログイン画面に戻る</button>
+  </div>
 </div>
 
 <div id="app-wrap" style="display:none;">
-  <div class="auth-bar">
-    <span id="auth-indicator">ログイン中</span>
-    <button id="logout-btn">ログアウト</button>
-  </div>
+<nav>
+  <button data-tab="members" class="active">会員一覧</button>
+  <button data-tab="qr">QR発行</button>
+  <button data-tab="catalog">交換リスト管理</button>
+  <button data-tab="requests">交換申請</button>
+  <button data-tab="redeem">手動交換</button>
+  <button data-tab="history">ポイント履歴</button>
+</nav>
 
-  <nav>
-    <button data-tab="earn" class="active">活動記録</button>
-    <button data-tab="catalog">交換リスト</button>
-    <button data-tab="history">ポイント履歴</button>
-    <button data-tab="settings">設定</button>
-  </nav>
+<main>
 
-  <main>
-    <section id="earn" class="active">
-      <div class="balance-card"><p class="label">現在のポイント残高</p><div class="value" id="balance-earn">0<span>pt</span></div></div>
-
-      <div class="card">
-        <h2>活動を記録してポイント付与</h2>
-        <div id="earn-status"></div>
-
-        <div id="earn-noqr">
-          <p class="hint" style="margin-top:0;">活動会場に掲示されているQRコードを読み取ると、ポイントを記録できます。</p>
-          <button class="btn" id="scan-btn">QRコードをスキャンする</button>
-        </div>
-
-        <div id="earn-withqr" style="display:none;">
-          <label>活動内容</label>
-          <div class="readonly-box" id="earn-label-display"></div>
-          <label>付与ポイント</label>
-          <div class="readonly-box" id="earn-points-display"></div>
-          <label for="earn-password">パスワード(本人確認)</label>
-          <input id="earn-password" type="password" placeholder="登録時に決めたパスワード">
-          <label for="earn-date">日付</label>
-          <input id="earn-date" type="date">
-          <button class="btn mint" id="add-earn-btn">ポイントを記録する</button>
-          <button type="button" class="link-btn" id="earn-cancel-btn">やめる</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <p class="sub-heading">これまでの活動記録</p>
-        <div id="recent-earn-list" class="scroll-list"><div class="empty">まだ記録がありません</div></div>
-      </div>
-    </section>
-
-    <section id="catalog">
-      <div class="balance-card"><p class="label">現在のポイント残高</p><div class="value" id="balance-catalog">0<span>pt</span></div></div>
-      <div class="card">
-        <h2>ポイント交換リスト</h2>
-        <p class="hint" style="margin-top:-6px;margin-bottom:14px;">景品をタップすると交換を申請できます。</p>
-        <div id="catalog-list"><div class="empty">まだ交換できる景品はありません</div></div>
-      </div>
-      <div class="card">
-        <p class="sub-heading">あなたの申請状況</p>
-        <div id="my-requests-list" class="scroll-list"><div class="empty">申請はまだありません</div></div>
-      </div>
-    </section>
-
-    <section id="history">
-      <div class="balance-card"><p class="label">現在のポイント残高</p><div class="value" id="balance-history">0<span>pt</span></div></div>
-      <div class="card">
-        <h2>ポイント履歴</h2>
-        <div id="log-list"><div class="empty">まだ記録がありません</div></div>
-      </div>
-    </section>
-
-    <section id="settings">
-      <div class="card">
-        <h2>メールアドレス</h2>
-        <label for="profile-email">メールアドレス</label>
-        <input id="profile-email" type="email">
-        <button class="btn ghost" id="save-email-btn">保存</button>
-        <p class="hint" id="profile-email-hint"></p>
-      </div>
-      <div class="card">
-        <h2>パスワードを変更</h2>
-        <div id="pw-step1">
-          <p class="hint" style="margin-top:0;">現在のパスワードを入力して、確認してください。</p>
-          <label for="pw-current">現在のパスワード</label>
-          <input id="pw-current" type="password">
-          <button class="btn ghost" id="pw-verify-btn">確認する</button>
-          <p class="hint" id="pw-verify-hint"></p>
-          <button type="button" class="link-btn" id="settings-forgot-link">パスワードを忘れた場合はこちら</button>
-        </div>
-        <div id="pw-step2" style="display:none;">
-          <p class="reset-rule">英字と数字を両方含む6文字以上のパスワードにしてください。</p>
-          <label for="pw-new">新しいパスワード</label>
-          <input id="pw-new" type="password" placeholder="英字+数字を含む6文字以上">
-          <label for="pw-new2">新しいパスワード(確認)</label>
-          <input id="pw-new2" type="password">
-          <button class="btn ghost" id="change-pw-btn">変更する</button>
-          <p class="hint" id="change-pw-hint"></p>
-          <button type="button" class="link-btn" id="pw-step2-back-btn">戻る</button>
-        </div>
-
-        <div id="settings-reset-box" class="banner" style="display:none;margin-top:14px;">
-          <div class="reset-icon" aria-hidden="true">
-            <svg viewBox="0 0 64 64">
-              <path d="M14 20a20 20 0 1 1 -3 22" fill="none" stroke="#15140F" stroke-width="4.2" stroke-linecap="round"/>
-              <path d="M7 13 L14 20 L21 12" fill="none" stroke="#15140F" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <rect x="21" y="30" width="22" height="18" rx="3.5" fill="#15140F"/>
-              <path d="M25.5 30v-6.5a6.5 6.5 0 0 1 13 0v6.5" fill="none" stroke="#15140F" stroke-width="4.2"/>
-            </svg>
-          </div>
-          <p class="reset-title">パスワードを再設定します</p>
-          <p class="hint" id="settings-reset-step1-text" style="margin-top:0;text-align:center;">登録済みのメールアドレスに確認コードを送ります。よろしいですか?</p>
-          <button class="btn ghost" id="settings-reset-send-btn">確認コードを送信する</button>
-          <div id="settings-reset-step2" style="display:none;">
-            <label for="settings-reset-code">確認コード(メールに記載)</label>
-            <input id="settings-reset-code" placeholder="6桁のコード">
-            <p class="reset-rule">英字と数字を両方含む6文字以上のパスワードにしてください。</p>
-            <label for="settings-reset-newpw">新しいパスワード</label>
-            <input id="settings-reset-newpw" type="password" placeholder="英字+数字を含む6文字以上">
-            <label for="settings-reset-newpw2">新しいパスワード(確認)</label>
-            <input id="settings-reset-newpw2" type="password" placeholder="もう一度入力">
-            <button class="btn ghost" id="settings-reset-confirm-btn">パスワードを再設定する</button>
-          </div>
-          <p class="hint" id="settings-reset-hint"></p>
-          <button type="button" class="link-btn" id="settings-reset-cancel-btn">やめる</button>
-        </div>
-      </div>
-    </section>
-  </main>
-</div>
-
-<div id="scanner-overlay">
-  <video id="qr-video" autoplay muted playsinline></video>
-  <canvas id="qr-canvas" style="display:none;"></canvas>
-  <div id="scanner-frame">
-    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-  </div>
-  <p id="scanner-hint">QRコードを枠の中に写してください</p>
-  <button id="scanner-close">閉じる</button>
-</div>
-
-<div id="onboarding-overlay">
-  <div class="onboarding-card">
-    <div class="onboarding-icon" id="onboarding-icon" aria-hidden="true"></div>
-    <p class="onboarding-title" id="onboarding-title"></p>
-    <p class="onboarding-text" id="onboarding-text"></p>
-    <div class="onboarding-dots" id="onboarding-dots"></div>
-    <div class="onboarding-actions">
-      <button class="btn ghost" id="onboarding-back-btn">戻る</button>
-      <button class="btn" id="onboarding-next-btn">次へ</button>
+  <section id="members" class="active">
+    <div class="card">
+      <h2>会員一覧とポイント</h2>
+      <div id="member-list"><div class="empty">まだ会員が登録されていません</div></div>
+      <p class="hint">会員登録は住民が自分で行います(住民用アプリから)。名前はGoogleスプレッドシートで確認できます。</p>
     </div>
-    <button id="onboarding-skip">スキップする</button>
-  </div>
+  </section>
+
+  <section id="qr">
+    <div class="card">
+      <h2>住民用アプリの公開URL</h2>
+      <p class="hint" style="margin-top:0;">ここで保存したURLは、この管理画面をどの端末で開いても記憶されています。QRコード発行に使われます。</p>
+      <input id="resident-url" placeholder="https://...(住民用アプリのリンク)">
+      <button class="btn ghost" id="save-url-btn">このURLを保存する</button>
+      <p class="hint" id="url-save-hint"></p>
+    </div>
+    <div class="card">
+      <h2>氏名登録用Googleフォームのリンク</h2>
+      <p class="hint" style="margin-top:0;">住民が会員登録した直後に「氏名を登録する」ボタンから開くリンクです。氏名と会員番号は、活動記録・景品交換用のこのスプレッドシートとは別の場所(Googleフォームの回答シート)で管理されます。<br>
+      Googleフォームの「送信」メニュー→リンクのアイコン→「事前入力したURLを取得」から、会員番号を入れる質問に仮の値を入れて生成し、そのURL中の仮の値の部分だけを <code>{CODE}</code> に置き換えて貼り付けてください。</p>
+      <input id="name-form-url" placeholder="https://docs.google.com/forms/d/e/xxxx/viewform?usp=pp_url&amp;entry.123456={CODE}">
+      <button class="btn ghost" id="save-nameform-btn">このURLを保存する</button>
+      <p class="hint" id="nameform-save-hint"></p>
+    </div>
+    <div class="card">
+      <h2>氏名登録の自動確認(強く推奨)</h2>
+      <p class="hint" style="margin-top:0;">これを設定すると、住民が氏名フォームを送信した瞬間に、このアプリ側で「氏名登録済み」として自動的に確認されるようになります。設定するまでは、住民は氏名を登録するまでアプリ本体(活動記録など)に進めません。<br>
+      氏名そのものはこのスプレッドシートには一切送られません。「会員番号」と「登録できた」という印だけがやり取りされます。</p>
+      <button class="btn ghost" id="get-callback-setup-btn">設定用コードを発行する</button>
+      <div id="callback-setup-result" style="display:none;margin-top:14px;">
+        <p class="hint" style="margin-top:0;">氏名登録用Googleフォームを編集画面で開き、右上の縦三点メニュー→「スクリプト エディタ」を開いて、次のコードを全部貼り付けてください(既存のコードがあれば置き換えてOK)。</p>
+        <textarea id="callback-setup-code" readonly style="width:100%;min-height:220px;font-family:monospace;font-size:0.82rem;"></textarea>
+        <button type="button" class="btn ghost" id="copy-callback-code-btn" style="margin-top:8px;">コードをコピー</button>
+        <p class="hint">貼り付けたら、左側の時計アイコン(トリガー)を開き、「トリガーを追加」→ 実行する関数「onFormSubmit」、イベントの種類「フォーム送信時」を選んで保存してください。保存時にGoogleアカウントの承認を求められるので、許可してください。</p>
+        <p class="hint" id="callback-setup-hint"></p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>活動用QRコードを作る</h2>
+      <label for="qr-label">活動内容</label>
+      <input id="qr-label" placeholder="例:清掃活動">
+      <label for="qr-points">付与ポイント</label>
+      <input id="qr-points" type="number" min="1" value="1">
+      <button class="btn" id="make-qr-btn">QRコードを作成する</button>
+      <p class="hint">「作成する」を押すたびに、毎回まったく違うQRコードが発行されます(不正利用防止のため)。発行したQRコードは約6時間有効です。古いQRコードは自動的に使えなくなります。</p>
+      <div id="print-area" style="display:none;">
+        <p class="qr-label" id="qr-shown-label"></p>
+        <p class="qr-pts" id="qr-shown-points"></p>
+        <p class="qr-expiry" id="qr-shown-expiry"></p>
+        <div id="qr-preview"></div>
+      </div>
+      <div class="qr-actions" id="qr-action-buttons" style="display:none;">
+        <button class="btn ghost" id="print-qr-btn">印刷する</button>
+        <button class="btn ghost" id="save-qr-btn">画像として保存</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>よく使う活動(保存済み)</h2>
+      <div id="tmpl-list"><div class="empty">保存された活動はありません</div></div>
+    </div>
+  </section>
+
+  <section id="catalog">
+    <div class="card">
+      <h2>交換リストに景品を追加</h2>
+      <label for="catalog-label">景品名</label>
+      <input id="catalog-label" placeholder="例:トイレットペーパー">
+      <label for="catalog-points">必要ポイント</label>
+      <input id="catalog-points" type="number" min="1" value="1">
+      <button class="btn" id="add-catalog-btn">追加する</button>
+      <p class="hint">ここに追加した景品は、住民用アプリの「交換リスト」タブに表示され、住民が交換を申請できます。</p>
+    </div>
+    <div class="card">
+      <h2>登録済みの交換リスト</h2>
+      <div id="catalog-manage-list"><div class="empty">まだ登録されていません</div></div>
+    </div>
+  </section>
+
+  <section id="requests">
+    <div class="card">
+      <h2>住民からの交換申請</h2>
+      <p class="hint" style="margin-top:0;">住民アプリから申請された景品交換です。品物を渡したら「渡した」を押して完了にしてください。</p>
+      <div id="requests-list"><div class="empty">申請はありません</div></div>
+    </div>
+  </section>
+
+  <section id="redeem">
+    <div class="card">
+      <h2>ポイントを日用品と交換(その場で手動処理)</h2>
+      <p class="hint" style="margin-top:0;">住民アプリを使わず、係の人がその場で直接交換処理をしたい場合はこちら。</p>
+      <label for="redeem-number">会員番号</label>
+      <select id="redeem-number"></select>
+      <label for="redeem-label">交換する品物</label>
+      <input id="redeem-label" placeholder="例:洗剤セット">
+      <div class="row2">
+        <div><label for="redeem-points">必要ポイント</label><input id="redeem-points" type="number" min="1" value="1"></div>
+        <div><label for="redeem-date">日付</label><input id="redeem-date" type="date"></div>
+      </div>
+      <button class="btn" id="add-redeem-btn">交換する</button>
+      <p class="notice" id="redeem-notice"></p>
+    </div>
+  </section>
+
+  <section id="history">
+    <div class="card">
+      <h2>ポイント履歴</h2>
+      <div id="log-list"><div class="empty">まだ記録がありません</div></div>
+    </div>
+  </section>
+
+</main>
 </div>
 
 <script>
-// ここに、GASの「ウェブアプリのURL」を貼り付けてください
+// ここに、GASの「ウェブアプリのURL」を貼り付けてください(住民用と同じもの)
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzFM65bEL3PBsfU8ZUgqL5v9lfUwZ8BNcdsS0yszfSs-3nf8o5jpHJ_Z7TB9gC6rcY6/exec';
-const AUTH_KEY = 'townPointAuth';
 
+let members = [];
 let log = [];
+let templates = [];
 let catalog = [];
-let nameFormUrl = '';
 let redemptions = [];
-let pendingToken = null;
-let videoStream = null;
-let auth = null; // { number, password }
+let adminPassword = '';
 
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function todayStr() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo' }).format(new Date()); }
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function isValidPassword(pw) { return /^(?=.*[A-Za-z])(?=.*[0-9]).{6,}$/.test(pw || ''); }
 
-function successIcon() {
-  return '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="2"/><path d="M7 12.5l3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-}
-
-async function apiGet(token) {
-  const url = WEB_APP_URL + (token ? ('?token=' + encodeURIComponent(token)) : '');
-  const res = await fetch(url);
+async function apiGet() {
+  const res = await fetch(WEB_APP_URL);
   return res.json();
 }
 async function apiPost(payload) {
@@ -426,616 +351,104 @@ async function apiPost(payload) {
   return res.json();
 }
 
-function loadAuth() {
-  try {
-    const raw = localStorage.getItem(AUTH_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-function saveAuth(a) { auth = a; localStorage.setItem(AUTH_KEY, JSON.stringify(a)); }
-function clearAuth() { auth = null; localStorage.removeItem(AUTH_KEY); }
-
-function currentBalance() {
-  return log.reduce((sum, e) => sum + (e.type === 'earn' ? Number(e.points) : -Number(e.points)), 0);
-}
-function pendingPoints() {
-  return redemptions.reduce((sum, r) => sum + (r.status === 'pending' ? Number(r.points) : 0), 0);
+function showLockCard(id) {
+  ['checking-card', 'setup-card', 'login-card', 'reset-card'].forEach(cid => {
+    document.getElementById(cid).style.display = (cid === id) ? 'block' : 'none';
+  });
 }
 
-async function loadPublicData() {
+async function initLockScreen() {
+  showLockCard('checking-card');
   try {
     const data = await apiGet();
-    catalog = data.catalog || [];
-    nameFormUrl = data.nameFormUrl || '';
+    showLockCard(data.passwordSet ? 'login-card' : 'setup-card');
   } catch (e) {
-    document.getElementById('register-status').innerHTML = '<div class="banner warn">通信に失敗しました。WEB_APP_URLの設定をご確認ください。</div>';
-  }
-}
-async function loadMyData() {
-  if (!auth) return;
-  try {
-    const res = await apiPost({ action: 'getMemberData', number: auth.number, password: auth.password });
-    if (res.ok) {
-      log = res.log || [];
-      redemptions = res.redemptions || [];
-      renderAppData();
-    }
-  } catch (e) { /* 通信失敗時は前回のデータのまま表示を続ける */ }
-}
-
-function renderAppData() {
-  const bal = currentBalance();
-  ['balance-earn', 'balance-catalog', 'balance-history'].forEach(id => {
-    document.getElementById(id).innerHTML = bal + '<span>pt</span>';
-  });
-  renderRecentEarns();
-  renderCatalog();
-  renderMyRequests();
-  renderLog();
-}
-
-function renderRecentEarns() {
-  const el = document.getElementById('recent-earn-list');
-  const mine = log.filter(l => l.type === 'earn')
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  if (mine.length === 0) { el.innerHTML = '<div class="empty">まだ記録がありません</div>'; return; }
-  el.innerHTML = mine.map(e => `
-    <div class="list-entry">
-      <span><div>${escapeHtml(e.label)}</div><div class="list-sub">${e.date || ''}</div></span>
-      <span class="list-pt earn">+${e.points}pt</span>
-    </div>`).join('');
-}
-
-function renderCatalog() {
-  const el = document.getElementById('catalog-list');
-  if (catalog.length === 0) { el.innerHTML = '<div class="empty">まだ交換できる景品はありません</div>'; return; }
-  const bal = currentBalance() - pendingPoints();
-  el.innerHTML = catalog.map(c => `
-    <div class="catalog-item" data-id="${c.id}">
-      <button class="catalog-item-btn" data-toggle="${c.id}">
-        <span>${escapeHtml(c.label)}</span>
-        <span class="pt-tag">${c.points}pt</span>
-      </button>
-      <div class="catalog-item-panel" id="panel-${c.id}">
-        <p class="hint">現在の残高(申請中を除く):${bal}pt</p>
-        ${bal >= Number(c.points)
-          ? `<label for="redeem-pw-${c.id}">パスワード(本人確認)</label>
-             <input type="password" id="redeem-pw-${c.id}" placeholder="登録時に決めたパスワード">
-             <button class="btn mint" data-request="${c.id}" style="margin-top:12px;">交換を申請する</button>`
-          : `<p class="hint error" style="margin-top:0;">ポイントが足りていません。</p>`}
-        <div id="redeem-status-${c.id}"></div>
-      </div>
-    </div>`).join('');
-
-  el.querySelectorAll('[data-toggle]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.toggle;
-      document.querySelectorAll('.catalog-item-panel').forEach(p => { if (p.id !== 'panel-' + id) p.classList.remove('open'); });
-      document.getElementById('panel-' + id).classList.toggle('open');
-    });
-  });
-  el.querySelectorAll('[data-request]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.request;
-      const pwEl = document.getElementById('redeem-pw-' + id);
-      const statusEl = document.getElementById('redeem-status-' + id);
-      if (!pwEl.value) { statusEl.innerHTML = '<p class="hint error">パスワードを入力してください。</p>'; return; }
-      btn.disabled = true;
-      try {
-        const res = await apiPost({ action: 'requestRedeem', number: auth.number, memberPassword: pwEl.value, catalogId: id });
-        if (res.ok) {
-          statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>交換を申請しました。管理者の対応をお待ちください。</span></div>';
-          await loadMyData();
-        } else if (res.error === 'insufficient_points') {
-          statusEl.innerHTML = '<p class="hint error">ポイントが足りていません。</p>';
-        } else if (res.error === 'member_password') {
-          statusEl.innerHTML = '<p class="hint error">パスワードが違います。</p>';
-        } else {
-          statusEl.innerHTML = '<p class="hint error">申請に失敗しました。</p>';
-        }
-      } catch (e) {
-        statusEl.innerHTML = '<p class="hint error">通信に失敗しました。</p>';
-      } finally {
-        btn.disabled = false;
-      }
-    });
-  });
-}
-
-function renderMyRequests() {
-  const el = document.getElementById('my-requests-list');
-  const mine = [...redemptions].sort((a, b) => (b.requestedAt || '').localeCompare(a.requestedAt || ''));
-  if (mine.length === 0) { el.innerHTML = '<div class="empty">申請はまだありません</div>'; return; }
-  const statusLabel = { pending: '確認中', done: '受け取り済み', rejected: '却下' };
-  el.innerHTML = mine.map(r => `
-    <div class="list-entry">
-      <span><div>${escapeHtml(r.label)}</div><div class="list-sub">${(r.requestedAt || '').slice(0, 10)}</div></span>
-      <span style="display:flex;align-items:center;gap:8px;">
-        <span class="list-pt">${r.points}pt</span>
-        <span class="status-tag ${r.status}">${statusLabel[r.status] || r.status}</span>
-      </span>
-    </div>`).join('');
-}
-
-function renderLog() {
-  const el = document.getElementById('log-list');
-  const mine = [...log].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  if (mine.length === 0) { el.innerHTML = '<div class="empty">まだ記録がありません</div>'; return; }
-  el.innerHTML = mine.map(e => {
-    const sign = e.type === 'earn' ? '+' : '−';
-    return `<div class="list-entry">
-      <span><div>${escapeHtml(e.label)}</div><div class="list-sub">${e.date || ''}</div></span>
-      <span class="list-pt ${e.type}">${sign}${e.points}pt</span>
-    </div>`;
-  }).join('');
-}
-
-// ---- ログイン状態の切り替え ----
-function showGate() {
-  document.getElementById('gate-wrap').style.display = 'block';
-  document.getElementById('app-wrap').style.display = 'none';
-}
-function showApp() {
-  document.getElementById('gate-wrap').style.display = 'none';
-  document.getElementById('app-wrap').style.display = 'block';
-  document.getElementById('auth-indicator').textContent = 'No.' + auth.number;
-  document.getElementById('profile-email').value = auth.email;
-  renderAppData();
-  loadMyData();
-  maybeShowOnboarding();
-}
-
-// ---- 初回だけ表示する、機能紹介(オンボーディング) ----
-const ONBOARDING_KEY = 'chonaikai_onboarding_seen_v1';
-const onboardingSteps = [
-  {
-    icon: '<svg viewBox="0 0 64 64"><rect x="8" y="8" width="20" height="20" rx="3" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="36" y="8" width="20" height="20" rx="3" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="8" y="36" width="20" height="20" rx="3" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="40" y="40" width="6" height="6" fill="#15140F"/><rect x="50" y="40" width="6" height="6" fill="#15140F"/><rect x="40" y="50" width="6" height="6" fill="#15140F"/><rect x="50" y="50" width="6" height="6" fill="#15140F"/></svg>',
-    title: 'QRコードでポイントを貯める',
-    text: '活動に参加すると、係の人がQRコードを見せてくれます。「活動記録」タブでQRコードを読み取り、パスワードを入力すると、ポイントが記録されます。'
-  },
-  {
-    icon: '<svg viewBox="0 0 64 64"><path d="M10 26h44v28a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V26z" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="6" y="16" width="52" height="12" rx="2" fill="none" stroke="#15140F" stroke-width="3.6"/><path d="M32 16v42M32 16c-4-10-20-10-16-2 2 4 9 4 16 2zM32 16c4-10 20-10 16-2-2 4-9 4-16 2z" fill="none" stroke="#15140F" stroke-width="3.2" stroke-linejoin="round"/></svg>',
-    title: '貯めたポイントを景品と交換',
-    text: '「交換リスト」タブから、貯めたポイントで交換できる景品を選んで申請できます。申請後、係の人が確認して手渡ししてくれます。'
-  },
-  {
-    icon: '<svg viewBox="0 0 64 64"><circle cx="32" cy="34" r="22" fill="none" stroke="#15140F" stroke-width="3.6"/><path d="M32 20v14l10 6" fill="none" stroke="#15140F" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    title: '履歴でいつでも確認',
-    text: '「ポイント履歴」タブでは、今までの活動記録と交換履歴、現在のポイント残高をいつでも見返すことができます。'
-  },
-  {
-    icon: '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="8" fill="none" stroke="#15140F" stroke-width="3.6"/><path d="M32 10v6M32 48v6M10 32h6M48 32h6M16.5 16.5l4.2 4.2M43.3 43.3l4.2 4.2M47.5 16.5l-4.2 4.2M20.7 43.3l-4.2 4.2" stroke="#15140F" stroke-width="3.6" stroke-linecap="round"/></svg>',
-    title: '設定はこちらから',
-    text: '「設定」タブでは、メールアドレスやパスワードの変更ができます。パスワードを忘れたときも、この画面から再設定できます。'
-  }
-];
-let onboardingIndex = 0;
-function renderOnboardingStep() {
-  const step = onboardingSteps[onboardingIndex];
-  document.getElementById('onboarding-icon').innerHTML = step.icon;
-  document.getElementById('onboarding-title').textContent = step.title;
-  document.getElementById('onboarding-text').textContent = step.text;
-  document.getElementById('onboarding-dots').innerHTML = onboardingSteps
-    .map((_, i) => '<span class="' + (i === onboardingIndex ? 'active' : '') + '"></span>').join('');
-  document.getElementById('onboarding-back-btn').style.visibility = onboardingIndex === 0 ? 'hidden' : 'visible';
-  document.getElementById('onboarding-next-btn').textContent =
-    onboardingIndex === onboardingSteps.length - 1 ? 'はじめる' : '次へ';
-}
-function maybeShowOnboarding() {
-  try {
-    if (localStorage.getItem(ONBOARDING_KEY)) return;
-  } catch (e) { return; }
-  onboardingIndex = 0;
-  renderOnboardingStep();
-  document.getElementById('onboarding-overlay').classList.add('open');
-}
-function closeOnboarding() {
-  document.getElementById('onboarding-overlay').classList.remove('open');
-  try { localStorage.setItem(ONBOARDING_KEY, '1'); } catch (e) { /* 保存できなくても致命的ではない */ }
-}
-document.getElementById('onboarding-next-btn').addEventListener('click', () => {
-  if (onboardingIndex === onboardingSteps.length - 1) { closeOnboarding(); return; }
-  onboardingIndex++;
-  renderOnboardingStep();
-});
-document.getElementById('onboarding-back-btn').addEventListener('click', () => {
-  if (onboardingIndex === 0) return;
-  onboardingIndex--;
-  renderOnboardingStep();
-});
-document.getElementById('onboarding-skip').addEventListener('click', closeOnboarding);
-
-async function tryAutoLogin() {
-  const stored = loadAuth();
-  if (!stored) { showGate(); return; }
-  try {
-    const res = await apiPost({ action: 'login', email: stored.email, password: stored.password });
-    if (res.ok) { auth = { email: stored.email, password: stored.password, number: res.number }; showApp(); }
-    else { clearAuth(); showGate(); }
-  } catch (e) {
-    // 通信に失敗した場合は、いったんログイン済み扱いで表示だけしておく
-    auth = stored; showApp();
+    document.getElementById('checking-card').innerHTML = '<p class="hint">通信に失敗しました。WEB_APP_URLの設定をご確認ください。</p>';
+    showLockCard('checking-card');
   }
 }
 
-document.getElementById('login-btn').addEventListener('click', async () => {
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const statusEl = document.getElementById('login-status');
-  if (!email) { statusEl.innerHTML = '<p class="hint error">メールアドレスを入力してください。</p>'; return; }
-  if (!password) { statusEl.innerHTML = '<p class="hint error">パスワードを入力してください。</p>'; return; }
-  const btn = document.getElementById('login-btn');
+// ---- 初期設定(初回のみ) ----
+document.getElementById('setup-btn').addEventListener('click', async () => {
+  const email = document.getElementById('setup-email').value.trim();
+  const p1 = document.getElementById('setup-password').value;
+  const p2 = document.getElementById('setup-password2').value;
+  const hintEl = document.getElementById('setup-hint');
+  if (!email) { hintEl.textContent = 'メールアドレスを入力してください。'; return; }
+  if (!isValidPassword(p1)) { hintEl.textContent = 'パスワードは英字と数字を両方含む6文字以上にしてください。'; return; }
+  if (p1 !== p2) { hintEl.textContent = '入力が一致しません。もう一度確認してください。'; return; }
+  const btn = document.getElementById('setup-btn');
   btn.disabled = true;
   try {
-    const res = await apiPost({ action: 'login', email, password });
+    const res = await apiPost({ action: 'checkPasscode', passcode: p1, email });
     if (res.ok) {
-      saveAuth({ email, password, number: res.number });
-      statusEl.innerHTML = '';
-      showApp();
-    } else if (res.error === 'too_many_attempts') {
-      statusEl.innerHTML = '<p class="hint error">失敗が続いたため、しばらく時間をおいてからもう一度お試しください。</p>';
+      adminPassword = p1;
+      document.getElementById('app-wrap').style.display = 'block';
+      document.getElementById('lock-screen').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'inline-block';
+      await loadData();
     } else {
-      statusEl.innerHTML = '<p class="hint error">メールアドレスまたはパスワードが違います。</p>';
+      hintEl.textContent = res.error === 'password_weak' ? 'パスワードは英字と数字を両方含む6文字以上にしてください。' : '設定に失敗しました。';
     }
   } catch (e) {
-    statusEl.innerHTML = '<p class="hint error">通信に失敗しました。</p>';
+    hintEl.textContent = '通信に失敗しました。';
   } finally {
     btn.disabled = false;
   }
 });
 
+// ---- 通常ログイン ----
+document.getElementById('unlock-btn').addEventListener('click', async () => {
+  const p = document.getElementById('passcode-input').value;
+  const hintEl = document.getElementById('lock-hint');
+  const btn = document.getElementById('unlock-btn');
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'checkPasscode', passcode: p });
+    if (res.ok) {
+      adminPassword = p;
+      document.getElementById('app-wrap').style.display = 'block';
+      document.getElementById('lock-screen').style.display = 'none';
+      document.getElementById('logout-btn').style.display = 'inline-block';
+      await loadData();
+    } else if (res.error === 'too_many_attempts') {
+      hintEl.textContent = '失敗が続いたため、しばらく時間をおいてからもう一度お試しください。';
+    } else {
+      hintEl.textContent = 'パスワードが違います。';
+    }
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
 document.getElementById('logout-btn').addEventListener('click', () => {
-  clearAuth();
-  showGate();
+  adminPassword = '';
+  document.getElementById('app-wrap').style.display = 'none';
+  document.getElementById('logout-btn').style.display = 'none';
+  document.getElementById('passcode-input').value = '';
+  initLockScreen();
 });
 
-// ---- 設定:メールアドレス・パスワード変更 ----
-document.getElementById('save-email-btn').addEventListener('click', async () => {
-  const email = document.getElementById('profile-email').value.trim();
-  const hintEl = document.getElementById('profile-email-hint');
-  if (!email) { hintEl.textContent = 'メールアドレスを入力してください。'; hintEl.className = 'hint error'; return; }
-  const btn = document.getElementById('save-email-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'updateProfile', number: auth.number, password: auth.password, email });
-    if (res.ok) {
-      saveAuth({ email, password: auth.password, number: auth.number });
-      hintEl.textContent = '保存しました。次回からはこのメールアドレスでログインしてください。';
-      hintEl.className = 'hint';
-    } else if (res.error === 'email_taken') {
-      hintEl.textContent = 'このメールアドレスはすでに使われています。';
-      hintEl.className = 'hint error';
-    } else if (res.error === 'member_password') {
-      hintEl.textContent = '保存に失敗しました(パスワードの確認でエラーが発生しました)。';
-      hintEl.className = 'hint error';
-    } else {
-      hintEl.textContent = '保存に失敗しました。';
-      hintEl.className = 'hint error';
-    }
-  } catch (e) {
-    hintEl.textContent = '通信に失敗しました。';
-    hintEl.className = 'hint error';
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-// ---- パスワード変更(1段階目:現在のパスワードを確認するだけ) ----
-let verifiedCurrentPassword = null;
-function resetPwSteps() {
-  verifiedCurrentPassword = null;
-  document.getElementById('pw-step1').style.display = 'block';
-  document.getElementById('pw-step2').style.display = 'none';
-  document.getElementById('pw-current').value = '';
-  document.getElementById('pw-new').value = '';
-  document.getElementById('pw-new2').value = '';
-  document.getElementById('pw-verify-hint').textContent = '';
-  document.getElementById('change-pw-hint').textContent = '';
-}
-document.getElementById('pw-verify-btn').addEventListener('click', async () => {
-  const current = document.getElementById('pw-current').value;
-  const hintEl = document.getElementById('pw-verify-hint');
-  if (!current) { hintEl.textContent = '現在のパスワードを入力してください。'; hintEl.className = 'hint error'; return; }
-  const btn = document.getElementById('pw-verify-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'verifyMemberPassword', number: auth.number, password: current });
-    if (res.ok) {
-      verifiedCurrentPassword = current;
-      hintEl.textContent = '';
-      hintEl.className = 'hint';
-      document.getElementById('pw-step1').style.display = 'none';
-      document.getElementById('pw-step2').style.display = 'block';
-      document.getElementById('change-pw-hint').textContent = '';
-    } else if (res.error === 'too_many_attempts') {
-      hintEl.textContent = '失敗回数が多いため、しばらく時間をおいてから試してください。';
-      hintEl.className = 'hint error';
-    } else {
-      hintEl.textContent = '現在のパスワードが違います。';
-      hintEl.className = 'hint error';
-    }
-  } catch (e) {
-    hintEl.textContent = '通信に失敗しました。';
-    hintEl.className = 'hint error';
-  } finally {
-    btn.disabled = false;
-  }
-});
-document.getElementById('pw-step2-back-btn').addEventListener('click', () => {
-  resetPwSteps();
-});
-
-// ---- パスワード変更(2段階目:新しいパスワードを設定) ----
-document.getElementById('change-pw-btn').addEventListener('click', async () => {
-  const p1 = document.getElementById('pw-new').value;
-  const p2 = document.getElementById('pw-new2').value;
-  const hintEl = document.getElementById('change-pw-hint');
-  if (!verifiedCurrentPassword) { resetPwSteps(); return; }
-  if (!isValidPassword(p1)) { hintEl.textContent = '新しいパスワードは英字と数字を両方含む6文字以上にしてください。'; hintEl.className = 'hint error'; return; }
-  if (p1 !== p2) { hintEl.textContent = '新しいパスワードが一致しません。'; hintEl.className = 'hint error'; return; }
-  const btn = document.getElementById('change-pw-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'changePassword', number: auth.number, password: verifiedCurrentPassword, newPassword: p1 });
-    if (res.ok) {
-      saveAuth({ email: auth.email, password: p1, number: auth.number });
-      hintEl.textContent = 'パスワードを変更しました。';
-      hintEl.className = 'hint';
-      setTimeout(resetPwSteps, 1200);
-    } else if (res.error === 'member_password') {
-      hintEl.textContent = '現在のパスワードの確認でエラーが発生しました。もう一度はじめからやり直してください。';
-      hintEl.className = 'hint error';
-      setTimeout(resetPwSteps, 1500);
-    } else if (res.error === 'password_weak') {
-      hintEl.textContent = '新しいパスワードは英字と数字を両方含む6文字以上にしてください。';
-      hintEl.className = 'hint error';
-    } else {
-      hintEl.textContent = '変更に失敗しました。';
-      hintEl.className = 'hint error';
-    }
-  } catch (e) {
-    hintEl.textContent = '通信に失敗しました。';
-    hintEl.className = 'hint error';
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-// ---- 設定タブから:パスワードを忘れた場合(ログイン中なので、登録済みメールへ直接コードを送る) ----
-document.getElementById('settings-forgot-link').addEventListener('click', () => {
-  document.getElementById('settings-reset-box').style.display = 'block';
-  document.getElementById('settings-reset-step2').style.display = 'none';
-  document.getElementById('settings-reset-hint').textContent = '';
-  document.getElementById('settings-reset-code').value = '';
-  document.getElementById('settings-reset-newpw').value = '';
-  document.getElementById('settings-reset-newpw2').value = '';
-});
-document.getElementById('settings-reset-cancel-btn').addEventListener('click', () => {
-  document.getElementById('settings-reset-box').style.display = 'none';
-});
-document.getElementById('settings-reset-send-btn').addEventListener('click', async () => {
-  const hintEl = document.getElementById('settings-reset-hint');
-  const btn = document.getElementById('settings-reset-send-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'requestReset', target: 'member', email: auth.email });
-    if (res.ok) {
-      hintEl.textContent = '確認コードを送信しました。メールをご確認ください。';
-      hintEl.className = 'hint';
-      document.getElementById('settings-reset-step2').style.display = 'block';
-    } else {
-      hintEl.textContent = '送信に失敗しました。';
-      hintEl.className = 'hint error';
-    }
-  } catch (e) {
-    hintEl.textContent = '通信に失敗しました。';
-    hintEl.className = 'hint error';
-  } finally {
-    btn.disabled = false;
-  }
-});
-document.getElementById('settings-reset-confirm-btn').addEventListener('click', async () => {
-  const code = document.getElementById('settings-reset-code').value.trim();
-  const newPw = document.getElementById('settings-reset-newpw').value;
-  const newPw2 = document.getElementById('settings-reset-newpw2').value;
-  const hintEl = document.getElementById('settings-reset-hint');
-  if (!code) { hintEl.textContent = '確認コードを入力してください。'; hintEl.className = 'hint error'; return; }
-  if (!isValidPassword(newPw)) { hintEl.textContent = 'パスワードは英字と数字を両方含む6文字以上にしてください。'; hintEl.className = 'hint error'; return; }
-  if (newPw !== newPw2) { hintEl.textContent = '新しいパスワードが一致しません。'; hintEl.className = 'hint error'; return; }
-  const btn = document.getElementById('settings-reset-confirm-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'confirmReset', target: 'member', email: auth.email, code, newPassword: newPw });
-    if (res.ok) {
-      saveAuth({ email: auth.email, password: newPw, number: auth.number });
-      document.getElementById('settings-reset-box').style.display = 'none';
-      resetPwSteps();
-      document.getElementById('change-pw-hint').textContent = 'パスワードを再設定しました。';
-      document.getElementById('change-pw-hint').className = 'hint';
-    } else if (res.error === 'invalid_code') {
-      hintEl.textContent = '確認コードが違います。';
-      hintEl.className = 'hint error';
-    } else if (res.error === 'expired') {
-      hintEl.textContent = '確認コードの有効期限が切れました。もう一度送信してください。';
-      hintEl.className = 'hint error';
-    } else if (res.error === 'password_weak') {
-      hintEl.textContent = 'パスワードは英字と数字を両方含む6文字以上にしてください。';
-      hintEl.className = 'hint error';
-    } else {
-      hintEl.textContent = '再設定に失敗しました。';
-      hintEl.className = 'hint error';
-    }
-  } catch (e) {
-    hintEl.textContent = '通信に失敗しました。';
-    hintEl.className = 'hint error';
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-// ---- 会員登録 ----
-function buildNameFormUrl(number) {
-  if (!nameFormUrl) return '';
-  return nameFormUrl.split('{CODE}').join(encodeURIComponent(number));
-}
-document.getElementById('register-btn').addEventListener('click', async () => {
-  const email = document.getElementById('reg-email').value.trim();
-  const p1 = document.getElementById('reg-password').value;
-  const p2 = document.getElementById('reg-password2').value;
-  const statusEl = document.getElementById('register-status');
-  if (!email) { statusEl.innerHTML = '<p class="hint error">メールアドレスを入力してください。</p>'; return; }
-  if (!isValidPassword(p1)) { statusEl.innerHTML = '<p class="hint error">パスワードは英字と数字を両方含む6文字以上にしてください。</p>'; return; }
-  if (p1 !== p2) { statusEl.innerHTML = '<p class="hint error">パスワードが一致しません。</p>'; return; }
-  const btn = document.getElementById('register-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'register', email, password: p1 });
-    if (res.ok) {
-      saveAuth({ email, password: p1, number: res.number });
-      statusEl.innerHTML = '';
-      const url = buildNameFormUrl(res.number);
-      if (url) {
-        document.getElementById('register-number-display').textContent = 'No.' + res.number;
-        document.getElementById('register-nameform-link').href = url;
-        document.getElementById('register-nameform-box').style.display = 'block';
-        document.getElementById('reg-email').value = '';
-        document.getElementById('reg-password').value = '';
-        document.getElementById('reg-password2').value = '';
-        // 手動のクリックを待たず、自動で別タブに氏名登録フォームを開く(ポップアップがブロックされた場合はボタンを手動で押してもらう)
-        const opened = window.open(url, '_blank', 'noopener');
-        if (opened) {
-          document.getElementById('register-nameform-autotext').style.display = 'block';
-        }
-      } else {
-        showApp();
-        document.getElementById('earn-status').innerHTML =
-          '<div class="success-pill">' + successIcon() + '<span>登録が完了しました。ようこそ!</span></div>';
-      }
-    } else if (res.error === 'password_weak') {
-      statusEl.innerHTML = '<p class="hint error">パスワードは英字と数字を両方含む6文字以上にしてください。</p>';
-    } else if (res.error === 'email_taken') {
-      statusEl.innerHTML = '<p class="hint error">このメールアドレスはすでに登録されています。ログインをお試しください。</p>';
-    } else {
-      statusEl.innerHTML = '<p class="hint error">登録に失敗しました。</p>';
-    }
-  } catch (e) {
-    statusEl.innerHTML = '<p class="hint error">通信に失敗しました。</p>';
-  } finally {
-    btn.disabled = false;
-  }
-});
-document.getElementById('register-nameform-link').addEventListener('click', () => {
-  setTimeout(() => {
-    document.getElementById('register-nameform-box').style.display = 'none';
-    showApp();
-    document.getElementById('earn-status').innerHTML =
-      '<div class="success-pill">' + successIcon() + '<span>登録が完了しました。氏名の登録もお忘れなく。</span></div>';
-  }, 400);
-});
-
-// ---- 活動記録(QR) ----
-document.getElementById('earn-cancel-btn').addEventListener('click', () => {
-  pendingToken = null;
-  document.getElementById('earn-withqr').style.display = 'none';
-  document.getElementById('earn-noqr').style.display = 'block';
-  document.getElementById('earn-status').innerHTML = '';
-});
-
-document.getElementById('earn-date').value = todayStr();
-document.getElementById('add-earn-btn').addEventListener('click', async () => {
-  const password = document.getElementById('earn-password').value;
-  const date = document.getElementById('earn-date').value || todayStr();
-  const statusEl = document.getElementById('earn-status');
-  if (!pendingToken) { statusEl.innerHTML = '<div class="banner warn">QRコードを読み取り直してください。</div>'; return; }
-  if (!password) { statusEl.innerHTML = '<div class="banner warn">パスワードを入力してください。</div>'; return; }
-  const btn = document.getElementById('add-earn-btn');
-  btn.disabled = true;
-  try {
-    const res = await apiPost({ action: 'addEarn', number: auth.number, memberPassword: password, token: pendingToken, date });
-    if (res.ok) {
-      pendingToken = null;
-      document.getElementById('earn-password').value = '';
-      document.getElementById('earn-withqr').style.display = 'none';
-      document.getElementById('earn-noqr').style.display = 'block';
-      statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>記録しました。ありがとうございました!</span></div>';
-      await loadMyData();
-    } else if (res.error === 'member_password') {
-      statusEl.innerHTML = '<div class="banner warn">パスワードが違います。</div>';
-    } else if (res.error === 'token_invalid') {
-      statusEl.innerHTML = '<div class="banner warn">このQRコードは無効です(有効期限切れの可能性があります)。もう一度スキャンし直してください。</div>';
-    } else if (res.error === 'already_claimed') {
-      statusEl.innerHTML = '<div class="banner warn">このQRコードではすでに記録済みです。</div>';
-    } else {
-      statusEl.innerHTML = '<div class="banner warn">記録に失敗しました。</div>';
-    }
-  } catch (e) {
-    statusEl.innerHTML = '<div class="banner warn">通信に失敗しました。</div>';
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-async function applyToken(token) {
-  const statusEl = document.getElementById('earn-status');
-  statusEl.innerHTML = '<div class="banner">QRコードを確認しています…</div>';
-  try {
-    const data = await apiGet(token);
-    if (!data.tokenInfo || !data.tokenInfo.valid) {
-      statusEl.innerHTML = '<div class="banner warn">このQRコードは無効です(有効期限切れの可能性があります)。</div>';
-      return;
-    }
-    pendingToken = token;
-    document.getElementById('earn-label-display').textContent = data.tokenInfo.label;
-    document.getElementById('earn-points-display').textContent = data.tokenInfo.points + 'pt';
-    document.getElementById('earn-noqr').style.display = 'none';
-    document.getElementById('earn-withqr').style.display = 'block';
-    statusEl.innerHTML = '<div class="banner">パスワードを入力して「記録する」を押してください。</div>';
-  } catch (e) {
-    statusEl.innerHTML = '<div class="banner warn">通信に失敗しました。</div>';
-  }
-}
-
-function handleIncomingQr() {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('t');
-  if (token) {
-    clearQueryParams();
-    if (auth) applyToken(token);
-    else pendingScanBeforeLogin(token);
-  }
-}
-function pendingScanBeforeLogin(token) {
-  document.getElementById('login-status').innerHTML = '<div class="banner">QRコードを読み取りました。ログインすると記録できます。</div>';
-  const check = setInterval(() => {
-    if (auth) { clearInterval(check); applyToken(token); switchTab('earn'); }
-  }, 400);
-}
-function clearQueryParams() {
-  if (window.location.search) history.replaceState(null, '', window.location.pathname);
-}
-
-// ---- パスワードを忘れた場合(メール再設定) ----
-document.getElementById('login-forgot-link').addEventListener('click', () => {
-  document.getElementById('reset-box').style.display = 'block';
+// ---- 管理者パスワードを忘れた場合 ----
+document.getElementById('forgot-link').addEventListener('click', () => {
+  showLockCard('reset-card');
+  document.getElementById('reset-step1').style.display = 'block';
   document.getElementById('reset-step2').style.display = 'none';
   document.getElementById('reset-hint').textContent = '';
-  const typedEmail = document.getElementById('login-email').value.trim();
-  if (typedEmail) document.getElementById('reset-email').value = typedEmail;
 });
-document.getElementById('reset-cancel-btn').addEventListener('click', () => {
-  document.getElementById('reset-box').style.display = 'none';
-});
+document.getElementById('back-to-login-link').addEventListener('click', () => showLockCard('login-card'));
 document.getElementById('reset-send-btn').addEventListener('click', async () => {
-  const email = document.getElementById('reset-email').value.trim();
   const hintEl = document.getElementById('reset-hint');
-  if (!email) { hintEl.textContent = 'メールアドレスを入力してください。'; return; }
   const btn = document.getElementById('reset-send-btn');
   btn.disabled = true;
   try {
-    const res = await apiPost({ action: 'requestReset', target: 'member', email });
+    const res = await apiPost({ action: 'requestReset', target: 'admin' });
     if (res.ok) {
-      hintEl.textContent = 'そのメールアドレスが登録されていれば、確認コードを送信しました。';
+      hintEl.textContent = '登録されたメールアドレスに確認コードを送信しました。';
       document.getElementById('reset-step2').style.display = 'block';
+    } else if (res.error === 'no_email') {
+      hintEl.textContent = 'メールアドレスが登録されていません。下の説明のとおりスプレッドシートから再設定してください。';
     } else {
       hintEl.textContent = '送信に失敗しました。';
     }
@@ -1046,27 +459,21 @@ document.getElementById('reset-send-btn').addEventListener('click', async () => 
   }
 });
 document.getElementById('reset-confirm-btn').addEventListener('click', async () => {
-  const email = document.getElementById('reset-email').value.trim();
   const code = document.getElementById('reset-code').value.trim();
   const newPw = document.getElementById('reset-newpw').value;
   const newPw2 = document.getElementById('reset-newpw2').value;
   const hintEl = document.getElementById('reset-hint');
-  if (!email) { hintEl.textContent = 'メールアドレスを入力してください。'; return; }
   if (!code) { hintEl.textContent = '確認コードを入力してください。'; return; }
   if (!isValidPassword(newPw)) { hintEl.textContent = 'パスワードは英字と数字を両方含む6文字以上にしてください。'; return; }
   if (newPw !== newPw2) { hintEl.textContent = '新しいパスワードが一致しません。'; return; }
   const btn = document.getElementById('reset-confirm-btn');
   btn.disabled = true;
   try {
-    const res = await apiPost({ action: 'confirmReset', target: 'member', email, code, newPassword: newPw });
+    const res = await apiPost({ action: 'confirmReset', target: 'admin', code, newPassword: newPw });
     if (res.ok) {
-      document.getElementById('login-email').value = email;
-      document.getElementById('login-password').value = newPw;
-      document.getElementById('reset-box').style.display = 'none';
-      document.getElementById('reset-code').value = '';
-      document.getElementById('reset-newpw').value = '';
-      document.getElementById('reset-newpw2').value = '';
-      document.getElementById('login-status').innerHTML = '<div class="banner">パスワードを再設定しました。ログインしてください。</div>';
+      document.getElementById('passcode-input').value = newPw;
+      showLockCard('login-card');
+      document.getElementById('lock-hint').textContent = 'パスワードを再設定しました。ログインしてください。';
     } else if (res.error === 'invalid_code') {
       hintEl.textContent = '確認コードが違います。';
     } else if (res.error === 'expired') {
@@ -1083,57 +490,326 @@ document.getElementById('reset-confirm-btn').addEventListener('click', async () 
   }
 });
 
-// ---- カメラでQRスキャン ----
-document.getElementById('scan-btn').addEventListener('click', startScanner);
-document.getElementById('scanner-close').addEventListener('click', stopScanner);
-
-function startScanner() {
-  const overlay = document.getElementById('scanner-overlay');
-  overlay.style.display = 'block';
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-    .then(stream => {
-      videoStream = stream;
-      const video = document.getElementById('qr-video');
-      video.srcObject = stream;
-      video.play();
-      requestAnimationFrame(scanFrame);
-    })
-    .catch(() => {
-      alert('カメラを起動できませんでした。ブラウザの設定でカメラへのアクセスを許可してください。');
-      stopScanner();
-    });
-}
-function stopScanner() {
-  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
-  document.getElementById('scanner-overlay').style.display = 'none';
-}
-function scanFrame() {
-  if (!videoStream) return;
-  const video = document.getElementById('qr-video');
-  const canvas = document.getElementById('qr-canvas');
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
-    if (code && code.data) {
-      handleScannedText(code.data);
-      stopScanner();
-      return;
-    }
-  }
-  requestAnimationFrame(scanFrame);
-}
-function handleScannedText(text) {
+// ---- データ読み込み ----
+// 「公開情報(活動テンプレート・交換リスト・URL設定)」と「管理者データ(会員・履歴・申請)」を分けておき、
+// 操作の種類に応じて必要な方だけ読み込み直すことで、毎回すべてを読み込み直す無駄をなくす。
+async function loadPublicConfig() {
   try {
-    const url = new URL(text);
-    const token = url.searchParams.get('t');
-    if (token) { applyToken(token); switchTab('earn'); return; }
-  } catch (e) { /* not a URL */ }
-  alert('この操山町内会ポイント帳用のQRコードではないようです。');
+    const pub = await apiGet();
+    templates = pub.templates || [];
+    catalog = pub.catalog || [];
+    document.getElementById('resident-url').value = pub.residentUrl || '';
+    document.getElementById('name-form-url').value = pub.nameFormUrl || '';
+    renderTemplates();
+    renderCatalogManage();
+  } catch (e) {
+    alert('データの読み込みに失敗しました。');
+  }
 }
+async function loadAdminData() {
+  try {
+    const admin = await apiPost({ action: 'getAdminData', passcode: adminPassword });
+    if (!admin.ok) { alert('データの読み込みに失敗しました(管理者パスワードをご確認ください)。'); return; }
+    members = admin.members || [];
+    log = admin.log || [];
+    redemptions = admin.redemptions || [];
+    renderMemberList();
+    renderNumberSelects();
+    renderLog();
+    renderRequests();
+  } catch (e) {
+    alert('データの読み込みに失敗しました。');
+  }
+}
+async function loadData() {
+  // 初回ログイン時だけ両方必要。並行して読み込むことで、順番に読み込むより速くする。
+  await Promise.all([loadPublicConfig(), loadAdminData()]);
+}
+
+function pointsFor(number) {
+  return log.reduce((sum, e) => {
+    if (Number(e.number) !== Number(number)) return sum;
+    return sum + (e.type === 'earn' ? Number(e.points) : -Number(e.points));
+  }, 0);
+}
+
+function renderCatalogManage() {
+  const el = document.getElementById('catalog-manage-list');
+  if (catalog.length === 0) { el.innerHTML = '<div class="empty">まだ登録されていません</div>'; return; }
+  el.innerHTML = catalog.map(c => `
+    <div class="catalog-row">
+      <span>${escapeHtml(c.label)}</span>
+      <span class="member-points">
+        <span class="stamp-num">${c.points}pt</span>
+        <button class="del-btn" data-id="${c.id}">削除</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await apiPost({ action: 'deleteCatalogItem', id: btn.dataset.id, passcode: adminPassword });
+      await loadPublicConfig();
+    });
+  });
+}
+
+function renderMemberList() {
+  const el = document.getElementById('member-list');
+  if (members.length === 0) { el.innerHTML = '<div class="empty">まだ会員が登録されていません</div>'; return; }
+  const sorted = [...members].sort((a, b) => Number(a.number) - Number(b.number));
+  el.innerHTML = sorted.map(m => `
+    <div class="member-row">
+      <span>No.${m.number} ${m.nameRegistered ? '<span class="name-status ok">氏名登録済み</span>' : '<span class="name-status pending">氏名未登録</span>'}</span>
+      <span class="member-points">
+        <span class="stamp-num">${pointsFor(m.number)}pt</span>
+        <button class="del-btn" data-num="${m.number}">削除</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('No.' + btn.dataset.num + ' を削除しますか?記録は残ります。')) return;
+      await apiPost({ action: 'deleteMember', number: btn.dataset.num, passcode: adminPassword });
+      await loadAdminData();
+    });
+  });
+}
+
+function renderNumberSelects() {
+  const opts = members.length
+    ? members.map(m => `<option value="${m.number}">No.${m.number}(${pointsFor(m.number)}pt)</option>`).join('')
+    : '<option value="">会員がいません</option>';
+  document.getElementById('redeem-number').innerHTML = opts;
+}
+
+function renderLog() {
+  const el = document.getElementById('log-list');
+  if (log.length === 0) { el.innerHTML = '<div class="empty">まだ記録がありません</div>'; return; }
+  const sorted = [...log].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  el.innerHTML = sorted.map(e => {
+    const sign = e.type === 'earn' ? '+' : '−';
+    return `<div class="list-entry">
+      <span><div>No.${e.number} — ${escapeHtml(e.label)}</div><div class="list-sub">${e.date || ''}</div></span>
+      <span class="list-pt ${e.type}">${sign}${e.points}pt</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRequests() {
+  const el = document.getElementById('requests-list');
+  const pending = redemptions.filter(r => r.status === 'pending')
+    .sort((a, b) => (a.requestedAt || '').localeCompare(b.requestedAt || ''));
+  if (pending.length === 0) { el.innerHTML = '<div class="empty">申請はありません</div>'; return; }
+  el.innerHTML = pending.map(r => `
+    <div class="req-row">
+      <span><div>No.${r.number} — ${escapeHtml(r.label)}</div><div class="list-sub">${(r.requestedAt || '').slice(0, 10)} ・ ${r.points}pt</div></span>
+      <span class="req-actions">
+        <button class="approve" data-act="approve" data-id="${r.id}">渡した</button>
+        <button class="reject" data-act="reject" data-id="${r.id}">却下</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('[data-act="approve"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const res = await apiPost({ action: 'completeRedeemRequest', id: btn.dataset.id, passcode: adminPassword });
+      if (!res.ok) alert('処理に失敗しました。');
+      await loadAdminData();
+    });
+  });
+  el.querySelectorAll('[data-act="reject"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('この申請を却下しますか?')) return;
+      const res = await apiPost({ action: 'rejectRedeemRequest', id: btn.dataset.id, passcode: adminPassword });
+      if (!res.ok) alert('処理に失敗しました。');
+      await loadAdminData();
+    });
+  });
+}
+
+function renderTemplates() {
+  const el = document.getElementById('tmpl-list');
+  if (templates.length === 0) { el.innerHTML = '<div class="empty">保存された活動はありません</div>'; return; }
+  el.innerHTML = templates.map(t => `
+    <div class="tmpl-row">
+      <span>${escapeHtml(t.label)}(${t.points}pt)</span>
+      <span class="tmpl-actions">
+        <button class="btn ghost" data-act="show" data-id="${t.id}" style="margin:0;">QR発行</button>
+        <button class="del-btn" data-act="del" data-id="${t.id}">削除</button>
+      </span>
+    </div>`).join('');
+  el.querySelectorAll('[data-act="show"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const t = templates.find(x => x.id === btn.dataset.id);
+      if (t) issueAndShowQr(t.label, t.points);
+    });
+  });
+  el.querySelectorAll('[data-act="del"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await apiPost({ action: 'deleteTemplate', id: btn.dataset.id, passcode: adminPassword });
+      await loadPublicConfig();
+    });
+  });
+}
+
+// ---- 住民アプリの公開URL ----
+document.getElementById('save-url-btn').addEventListener('click', async () => {
+  const url = document.getElementById('resident-url').value.trim();
+  const hintEl = document.getElementById('url-save-hint');
+  if (!url) { hintEl.textContent = 'URLを入力してください。'; return; }
+  const btn = document.getElementById('save-url-btn');
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'setResidentUrl', url, passcode: adminPassword });
+    hintEl.textContent = res.ok ? '保存しました。' : '保存に失敗しました。';
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---- 氏名登録用Googleフォームのリンク ----
+document.getElementById('save-nameform-btn').addEventListener('click', async () => {
+  const url = document.getElementById('name-form-url').value.trim();
+  const hintEl = document.getElementById('nameform-save-hint');
+  if (!url) { hintEl.textContent = 'URLを入力してください。'; return; }
+  if (!url.includes('{CODE}')) { hintEl.textContent = 'URLの中に {CODE} を含めてください。'; return; }
+  const btn = document.getElementById('save-nameform-btn');
+  btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'setNameFormUrl', url, passcode: adminPassword });
+    hintEl.textContent = res.ok ? '保存しました。' : '保存に失敗しました。';
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---- 氏名登録の自動確認(Googleフォーム連携)用コード発行 ----
+document.getElementById('get-callback-setup-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('get-callback-setup-btn');
+  const resultBox = document.getElementById('callback-setup-result');
+  const hintEl = document.getElementById('callback-setup-hint');
+  btn.disabled = true;
+  hintEl.textContent = '';
+  try {
+    const res = await apiPost({ action: 'getFormCallbackSetup', passcode: adminPassword });
+    if (!res.ok) { hintEl.textContent = '発行に失敗しました(管理者パスワードをご確認ください)。'; return; }
+    const code = [
+      'function onFormSubmit(e) {',
+      "  var itemResponses = e.response.getItemResponses();",
+      "  var number = '';",
+      '  for (var i = 0; i < itemResponses.length; i++) {',
+      "    if (itemResponses[i].getItem().getTitle() === '会員番号') {",
+      '      number = itemResponses[i].getResponse();',
+      '    }',
+      '  }',
+      '  if (!number) return;',
+      '  var payload = {',
+      "    action: 'markNameRegistered',",
+      '    number: number,',
+      "    secret: '" + res.secret + "'",
+      '  };',
+      '  UrlFetchApp.fetch(' + JSON.stringify(res.webAppUrl) + ', {',
+      "    method: 'post',",
+      "    contentType: 'text/plain;charset=utf-8',",
+      '    payload: JSON.stringify(payload),',
+      '    muteHttpExceptions: true',
+      '  });',
+      '}'
+    ].join('\n');
+    document.getElementById('callback-setup-code').value = code;
+    resultBox.style.display = 'block';
+  } catch (e) {
+    hintEl.textContent = '通信に失敗しました。';
+  } finally {
+    btn.disabled = false;
+  }
+});
+document.getElementById('copy-callback-code-btn').addEventListener('click', () => {
+  const ta = document.getElementById('callback-setup-code');
+  ta.select();
+  try {
+    navigator.clipboard.writeText(ta.value);
+    document.getElementById('callback-setup-hint').textContent = 'コピーしました。';
+  } catch (e) {
+    document.execCommand('copy');
+  }
+});
+
+// ---- QR ----
+let currentQrCanvas = null;
+async function issueAndShowQr(label, points) {
+  const btn = document.getElementById('make-qr-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await apiPost({ action: 'issueQrToken', label, points, passcode: adminPassword });
+    if (!res.ok) { alert('QRコードの発行に失敗しました。'); return; }
+    const residentUrl = (res.residentUrl || document.getElementById('resident-url').value || '').trim();
+    if (!residentUrl) { alert('先に「住民用アプリの公開URL」を保存してください。'); return; }
+    const url = residentUrl + (residentUrl.includes('?') ? '&' : '?') + 't=' + encodeURIComponent(res.token);
+    document.getElementById('qr-shown-label').textContent = label;
+    document.getElementById('qr-shown-points').textContent = points + 'pt';
+    document.getElementById('qr-shown-expiry').textContent = '有効期限:' + new Date(res.expiresAt).toLocaleString('ja-JP');
+    const preview = document.getElementById('qr-preview');
+    preview.innerHTML = '';
+    // width/heightを大きめに、誤り訂正レベルを標準(M)にして、模様を粗く読み取りやすくする
+    new QRCode(preview, { text: url, width: 300, height: 300, correctLevel: QRCode.CorrectLevel.M });
+    setTimeout(() => { currentQrCanvas = preview.querySelector('canvas'); }, 50);
+    document.getElementById('print-area').style.display = 'block';
+    document.getElementById('qr-action-buttons').style.display = 'flex';
+    if (!templates.some(t => t.label === label && Number(t.points) === Number(points))) {
+      await apiPost({ action: 'addTemplate', label, points, passcode: adminPassword });
+      await loadPublicConfig();
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+document.getElementById('make-qr-btn').addEventListener('click', () => {
+  const label = document.getElementById('qr-label').value.trim();
+  const points = parseInt(document.getElementById('qr-points').value, 10);
+  if (!label || !points || points <= 0) { alert('活動内容とポイント数を入力してください。'); return; }
+  issueAndShowQr(label, points);
+});
+document.getElementById('print-qr-btn').addEventListener('click', () => window.print());
+document.getElementById('save-qr-btn').addEventListener('click', () => {
+  if (!currentQrCanvas) { alert('QRコードを先に作成してください。'); return; }
+  const link = document.createElement('a');
+  link.download = 'qr_' + todayStr() + '.png';
+  link.href = currentQrCanvas.toDataURL('image/png');
+  link.click();
+});
+
+// ---- 交換リスト管理 ----
+document.getElementById('add-catalog-btn').addEventListener('click', async () => {
+  const label = document.getElementById('catalog-label').value.trim();
+  const points = parseInt(document.getElementById('catalog-points').value, 10);
+  if (!label || !points || points <= 0) { alert('景品名とポイント数を入力してください。'); return; }
+  const res = await apiPost({ action: 'addCatalogItem', label, points, passcode: adminPassword });
+  if (!res.ok) { alert('追加に失敗しました。'); return; }
+  document.getElementById('catalog-label').value = '';
+  document.getElementById('catalog-points').value = 1;
+  await loadPublicConfig();
+});
+
+// ---- 手動交換 ----
+document.getElementById('redeem-date').value = todayStr();
+document.getElementById('add-redeem-btn').addEventListener('click', async () => {
+  const number = parseInt(document.getElementById('redeem-number').value, 10);
+  const label = document.getElementById('redeem-label').value.trim();
+  const points = parseInt(document.getElementById('redeem-points').value, 10);
+  const date = document.getElementById('redeem-date').value || todayStr();
+  const notice = document.getElementById('redeem-notice');
+  notice.textContent = '';
+  if (!number || !label || !points || points <= 0) { alert('会員番号・品物・必要ポイント数を確認してください。'); return; }
+  const balance = pointsFor(number);
+  if (balance < points) { notice.textContent = `ポイントが足りません(現在 ${balance}pt / 必要 ${points}pt)`; return; }
+  const res = await apiPost({ action: 'addRedeem', number, label, points, date, passcode: adminPassword });
+  if (!res.ok) { notice.textContent = res.error === 'insufficient_points' ? 'ポイントが足りません。' : '交換に失敗しました。'; return; }
+  document.getElementById('redeem-label').value = '';
+  document.getElementById('redeem-points').value = 1;
+  await loadAdminData();
+});
 
 // ---- Tabs ----
 document.querySelectorAll('nav button[data-tab]').forEach(btn => {
@@ -1144,11 +820,7 @@ function switchTab(tab) {
   document.querySelectorAll('main section').forEach(s => s.classList.toggle('active', s.id === tab));
 }
 
-(async function init() {
-  await loadPublicData();
-  handleIncomingQr();
-  await tryAutoLogin();
-})();
+initLockScreen();
 </script>
 </body>
 </html>
