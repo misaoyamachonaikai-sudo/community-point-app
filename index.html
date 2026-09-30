@@ -434,6 +434,15 @@ async function apiPost(payload) {
   });
   return res.json();
 }
+// 通信が遅い・一瞬だけ失敗する場合に備えて、1回だけ自動で再試行してから諦める。
+async function withRetry_(fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    await new Promise(r => setTimeout(r, 800));
+    return await fn();
+  }
+}
 
 function loadAuth() {
   try {
@@ -453,7 +462,7 @@ function pendingPoints() {
 
 async function loadPublicData() {
   try {
-    const data = await apiGet();
+    const data = await withRetry_(() => apiGet());
     catalog = data.catalog || [];
     nameFormUrl = data.nameFormUrl || '';
   } catch (e) {
@@ -608,20 +617,13 @@ function showNameFormGate() {
   }
 }
 // ログイン・登録の直後に呼ぶ。氏名登録が確認できていなければ、アプリ本体の前に案内画面を挟む。
-async function enterApp() {
-  if (!nameFormUrl) { showApp(); return; }
-  try {
-    const res = await apiPost({ action: 'getMemberData', number: auth.number, password: auth.password });
-    if (res.ok) {
-      log = res.log || [];
-      redemptions = res.redemptions || [];
-      if (res.nameRegistered) { showApp(); } else { showNameFormGate(); }
-    } else {
-      showApp(); // 確認できない場合は締め出さない
-    }
-  } catch (e) {
-    showApp(); // 通信失敗時は締め出さない
-  }
+// login/getMemberDataの結果(履歴・申請・氏名登録状況)をそのまま画面に反映する。
+// ログインのたびに別の通信(getMemberData)を発生させない(=速くする)ため、
+// login のレスポンスに含まれるこれらの情報をそのまま使う。
+function applyMemberData_(res) {
+  log = res.log || [];
+  redemptions = res.redemptions || [];
+  if (!nameFormUrl || res.nameRegistered) { showApp(); } else { showNameFormGate(); }
 }
 document.getElementById('nameform-gate-check-btn').addEventListener('click', async () => {
   const hint = document.getElementById('nameform-gate-hint');
@@ -713,8 +715,8 @@ async function tryAutoLogin() {
   const stored = loadAuth();
   if (!stored) { showGate(); return; }
   try {
-    const res = await apiPost({ action: 'login', email: stored.email, password: stored.password });
-    if (res.ok) { auth = { email: stored.email, password: stored.password, number: res.number }; await enterApp(); }
+    const res = await withRetry_(() => apiPost({ action: 'login', email: stored.email, password: stored.password }));
+    if (res.ok) { auth = { email: stored.email, password: stored.password, number: res.number }; applyMemberData_(res); }
     else { clearAuth(); showGate(); }
   } catch (e) {
     // 通信に失敗した場合は、いったんログイン済み扱いで表示だけしておく
@@ -731,11 +733,11 @@ document.getElementById('login-btn').addEventListener('click', async () => {
   const btn = document.getElementById('login-btn');
   btn.disabled = true;
   try {
-    const res = await apiPost({ action: 'login', email, password });
+    const res = await withRetry_(() => apiPost({ action: 'login', email, password }));
     if (res.ok) {
       saveAuth({ email, password, number: res.number });
       statusEl.innerHTML = '';
-      await enterApp();
+      applyMemberData_(res);
     } else if (res.error === 'too_many_attempts') {
       statusEl.innerHTML = '<p class="hint error">失敗が続いたため、しばらく時間をおいてからもう一度お試しください。</p>';
     } else {
