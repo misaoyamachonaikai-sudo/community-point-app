@@ -267,8 +267,6 @@
           <div class="readonly-box" id="earn-label-display"></div>
           <label>付与ポイント</label>
           <div class="readonly-box" id="earn-points-display"></div>
-          <label for="earn-password">パスワード(本人確認)</label>
-          <input id="earn-password" type="password" placeholder="登録時に決めたパスワード">
           <label for="earn-date">日付</label>
           <input id="earn-date" type="date">
           <button class="btn mint" id="add-earn-btn">ポイントを記録する</button>
@@ -510,9 +508,7 @@ function renderCatalog() {
       <div class="catalog-item-panel" id="panel-${c.id}">
         <p class="hint">現在の残高(申請中を除く):${bal}pt</p>
         ${bal >= Number(c.points)
-          ? `<label for="redeem-pw-${c.id}">パスワード(本人確認)</label>
-             <input type="password" id="redeem-pw-${c.id}" placeholder="登録時に決めたパスワード">
-             <button class="btn mint" data-request="${c.id}" style="margin-top:12px;">交換を申請する</button>`
+          ? `<button class="btn mint" data-request="${c.id}" style="margin-top:12px;">交換を申請する</button>`
           : `<p class="hint error" style="margin-top:0;">ポイントが足りていません。</p>`}
         <div id="redeem-status-${c.id}"></div>
       </div>
@@ -528,12 +524,10 @@ function renderCatalog() {
   el.querySelectorAll('[data-request]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.request;
-      const pwEl = document.getElementById('redeem-pw-' + id);
       const statusEl = document.getElementById('redeem-status-' + id);
-      if (!pwEl.value) { statusEl.innerHTML = '<p class="hint error">パスワードを入力してください。</p>'; return; }
       btn.disabled = true;
       try {
-        const res = await apiPost({ action: 'requestRedeem', number: auth.number, memberPassword: pwEl.value, catalogId: id });
+        const res = await apiPost({ action: 'requestRedeem', number: auth.number, memberPassword: auth.password, catalogId: id });
         if (res.ok) {
           statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>交換を申請しました。管理者の対応をお待ちください。</span></div>';
           await loadMyData();
@@ -661,7 +655,7 @@ const onboardingSteps = [
   {
     icon: '<svg viewBox="0 0 64 64"><rect x="8" y="8" width="20" height="20" rx="3" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="36" y="8" width="20" height="20" rx="3" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="8" y="36" width="20" height="20" rx="3" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="40" y="40" width="6" height="6" fill="#15140F"/><rect x="50" y="40" width="6" height="6" fill="#15140F"/><rect x="40" y="50" width="6" height="6" fill="#15140F"/><rect x="50" y="50" width="6" height="6" fill="#15140F"/></svg>',
     title: 'QRコードでポイントを貯める',
-    text: '活動に参加すると、係の人がQRコードを見せてくれます。<br><br>「活動記録」タブでQRコードを読み取り、パスワードを入力すると、ポイントが記録されます。'
+    text: '活動に参加すると、係の人がQRコードを見せてくれます。<br><br>「活動記録」タブでQRコードを読み取ると、そのままポイントが記録されます。'
   },
   {
     icon: '<svg viewBox="0 0 64 64"><path d="M10 26h44v28a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V26z" fill="none" stroke="#15140F" stroke-width="3.6"/><rect x="6" y="16" width="52" height="12" rx="2" fill="none" stroke="#15140F" stroke-width="3.6"/><path d="M32 16v42M32 16c-4-10-20-10-16-2 2 4 9 4 16 2zM32 16c4-10 20-10 16-2-2 4-9 4-16 2z" fill="none" stroke="#15140F" stroke-width="3.2" stroke-linejoin="round"/></svg>',
@@ -998,18 +992,15 @@ document.getElementById('earn-cancel-btn').addEventListener('click', () => {
 
 document.getElementById('earn-date').value = todayStr();
 document.getElementById('add-earn-btn').addEventListener('click', async () => {
-  const password = document.getElementById('earn-password').value;
   const date = document.getElementById('earn-date').value || todayStr();
   const statusEl = document.getElementById('earn-status');
   if (!pendingToken) { statusEl.innerHTML = '<div class="banner warn">QRコードを読み取り直してください。</div>'; return; }
-  if (!password) { statusEl.innerHTML = '<div class="banner warn">パスワードを入力してください。</div>'; return; }
   const btn = document.getElementById('add-earn-btn');
   btn.disabled = true;
   try {
-    const res = await apiPost({ action: 'addEarn', number: auth.number, memberPassword: password, token: pendingToken, date });
+    const res = await apiPost({ action: 'addEarn', number: auth.number, memberPassword: auth.password, token: pendingToken, date });
     if (res.ok) {
       pendingToken = null;
-      document.getElementById('earn-password').value = '';
       document.getElementById('earn-withqr').style.display = 'none';
       document.getElementById('earn-noqr').style.display = 'block';
       statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>記録しました。ありがとうございました!</span></div>';
