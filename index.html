@@ -538,7 +538,8 @@ function renderCatalog() {
       try {
         const res = await apiPost({ action: 'requestRedeem', number: auth.number, memberPassword: auth.password, catalogId: id });
         if (res.ok) {
-          statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>交換を申請しました。管理者の対応をお待ちください。</span></div>';
+          statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>交換を申請しました。</span></div>';
+          setTimeout(() => { if (statusEl.innerHTML.indexOf('交換を申請しました') !== -1) statusEl.innerHTML = ''; }, 5000);
           await loadMyData();
         } else if (res.error === 'insufficient_points') {
           statusEl.innerHTML = '<p class="hint error">ポイントが足りていません。</p>';
@@ -560,7 +561,7 @@ function renderMyRequests() {
   const el = document.getElementById('my-requests-list');
   const mine = [...redemptions].sort((a, b) => (b.requestedAt || '').localeCompare(a.requestedAt || ''));
   if (mine.length === 0) { el.innerHTML = '<div class="empty">申請はまだありません</div>'; return; }
-  const statusLabel = { pending: '確認中', done: '受け取り済み', rejected: '却下' };
+  const statusLabel = { pending: '申請済み', done: '受け取り済み', rejected: '却下' };
   el.innerHTML = mine.map(r => `
     <div class="list-entry">
       <span><div>${escapeHtml(r.label)}</div><div class="list-sub">${(r.requestedAt || '').slice(0, 10)}</div></span>
@@ -1006,6 +1007,7 @@ document.getElementById('add-earn-btn').addEventListener('click', async () => {
       document.getElementById('earn-withqr').style.display = 'none';
       document.getElementById('earn-noqr').style.display = 'block';
       statusEl.innerHTML = '<div class="success-pill">' + successIcon() + '<span>記録しました。ありがとうございました!</span></div>';
+      setTimeout(() => { if (statusEl.innerHTML.indexOf('記録しました') !== -1) statusEl.innerHTML = ''; }, 5000);
       await loadMyData();
     } else if (res.error === 'member_password') {
       statusEl.innerHTML = '<div class="banner warn">パスワードが違います。</div>';
