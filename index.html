@@ -1037,7 +1037,7 @@ async function applyToken(token) {
     document.getElementById('earn-points-display').textContent = data.tokenInfo.points + 'pt';
     document.getElementById('earn-noqr').style.display = 'none';
     document.getElementById('earn-withqr').style.display = 'block';
-    statusEl.innerHTML = '<div class="banner">パスワードを入力して「記録する」を押してください。</div>';
+    statusEl.innerHTML = '<div class="banner">内容を確認して「ポイントを記録する」を押してください。</div>';
   } catch (e) {
     statusEl.innerHTML = '<div class="banner warn">通信に失敗しました。</div>';
   }
